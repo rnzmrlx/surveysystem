@@ -49,8 +49,8 @@ include('./includes/sidebar.php');
   .page-header-right { font-size: 12.5px; color: var(--ink-3); text-align: right; line-height: 1.6; }
   .page-header-right strong { color: var(--ink-2); }
 
-  /* ── Stat Strip ── */
-  .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  /* ── Stat Strip (3 cards now) ── */
+  .stat-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
   .stat-card {
     background: #fff; border: 1.5px solid var(--paper-3);
     border-radius: var(--radius); padding: 1.25rem 1.5rem;
@@ -64,7 +64,6 @@ include('./includes/sidebar.php');
   .stat-card.gold::before  { background: var(--gold); }
   .stat-card.teal::before  { background: var(--teal); }
   .stat-card.rose::before  { background: var(--rose); }
-  .stat-card.amber::before { background: var(--amber); }
 
   .stat-icon {
     width: 44px; height: 44px; border-radius: 10px;
@@ -73,7 +72,6 @@ include('./includes/sidebar.php');
   .stat-card.gold  .stat-icon { background: var(--gold-lt);  }
   .stat-card.teal  .stat-icon { background: var(--teal-lt);  }
   .stat-card.rose  .stat-icon { background: var(--rose-lt);  }
-  .stat-card.amber .stat-icon { background: var(--amber-lt); }
 
   .stat-body {}
   .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); font-weight: 600; }
@@ -116,17 +114,26 @@ include('./includes/sidebar.php');
   .prog-wrap { display: flex; align-items: center; gap: 8px; }
   .prog-bar  { flex: 1; height: 6px; background: var(--paper-2); border-radius: 99px; overflow: hidden; }
   .prog-fill { height: 100%; border-radius: 99px; }
-  .prog-fill.gold  { background: var(--gold); }
   .prog-fill.teal  { background: var(--teal); }
+  .prog-fill.gold  { background: var(--gold); }
   .prog-fill.amber { background: #d4a017; }
   .prog-pct  { font-size: 12px; color: var(--ink-3); width: 32px; text-align: right; }
 
-  /* Badges */
+  /* Badges — updated color mapping */
   .badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; }
   .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
-  .badge-active  { background: var(--teal-lt);  color: var(--teal);  } .badge-active::before  { background: var(--teal); }
-  .badge-closed { background: #fdf2f2; color: #8b0000; } .badge-closed::before { background: #8b0000; }
-  .badge-pending { background: var(--amber-lt); color: var(--amber); } .badge-pending::before { background: #d4a017; }
+
+  /* Closed → rose */
+  .badge-closed  { background: var(--rose-lt); color: var(--rose); }
+  .badge-closed::before  { background: var(--rose); }
+
+  /* Active → teal */
+  .badge-active { background: var(--teal-lt); color: var(--teal); }
+  .badge-active::before { background: var(--teal); }
+
+  /* Pending → gold */
+  .badge-pending { background: var(--gold-lt); color: var(--gold); }
+  .badge-pending::before { background: var(--gold); }
 
   /* ── Pie Chart Card ── */
   .pie-wrap { position: relative; height: 200px; display: flex; align-items: center; justify-content: center; }
@@ -161,6 +168,9 @@ include('./includes/sidebar.php');
     .dash-grid { grid-template-columns: 1fr; }
     .stat-strip { grid-template-columns: repeat(2, 1fr); }
   }
+  @media (max-width: 640px) {
+    .stat-strip { grid-template-columns: 1fr; }
+  }
 </style>
 
 <div class="main-wrapper">
@@ -169,7 +179,7 @@ include('./includes/sidebar.php');
   <div class="page-header">
     <div class="page-header-left">
       <h1>QuickQuery <em>Dashboard</em></h1>
-      <p>Survey management &amp; student results overview</p>
+      <p>Overview</p>
     </div>
     <div class="page-header-right">
       <strong><?= date('l, F d Y') ?></strong><br>
@@ -177,7 +187,7 @@ include('./includes/sidebar.php');
     </div>
   </div>
 
-  <!-- Stat Strip -->
+  <!-- Stat Strip (3 cards) -->
   <div class="stat-strip">
     <div class="stat-card gold">
       <div class="stat-icon">🎓</div>
@@ -201,14 +211,6 @@ include('./includes/sidebar.php');
         <div class="stat-label">Total Responses</div>
         <div class="stat-val">2,420</div>
         <div class="stat-sub">Across all surveys</div>
-      </div>
-    </div>
-    <div class="stat-card amber">
-      <div class="stat-icon">✅</div>
-      <div class="stat-body">
-        <div class="stat-label">Avg. Response Rate</div>
-        <div class="stat-val">89%</div>
-        <div class="stat-sub">+3.1% from last term</div>
       </div>
     </div>
   </div>
@@ -245,7 +247,7 @@ include('./includes/sidebar.php');
               <td>507 / 507</td>
               <td>
                 <div class="prog-wrap">
-                  <div class="prog-bar"><div class="prog-fill teal" style="width:100%"></div></div>
+                  <div class="prog-bar"><div class="prog-fill" style="width:100%; background:var(--rose);"></div></div>
                   <span class="prog-pct">100%</span>
                 </div>
               </td>
@@ -260,7 +262,7 @@ include('./includes/sidebar.php');
               <td>461 / 507</td>
               <td>
                 <div class="prog-wrap">
-                  <div class="prog-bar"><div class="prog-fill gold" style="width:91%"></div></div>
+                  <div class="prog-bar"><div class="prog-fill teal" style="width:91%"></div></div>
                   <span class="prog-pct">91%</span>
                 </div>
               </td>
@@ -275,7 +277,7 @@ include('./includes/sidebar.php');
               <td>0 / 507</td>
               <td>
                 <div class="prog-wrap">
-                  <div class="prog-bar"><div class="prog-fill amber" style="width:89%"></div></div>
+                  <div class="prog-bar"><div style="width:0%"></div></div>
                   <span class="prog-pct">0%</span>
                 </div>
               </td>
@@ -297,21 +299,21 @@ include('./includes/sidebar.php');
               <span>Mid-Term Faculty Evaluation</span>
               <span>507 responses · 100%</span>
             </div>
-            <div class="resp-track"><div class="resp-fill" style="width:100%; background:var(--teal);"></div></div>
+            <div class="resp-track"><div class="resp-fill" style="width:100%; background:var(--rose);"></div></div>
           </div>
           <div class="resp-item">
             <div class="resp-label">
               <span>Online Learning Experience</span>
               <span>461 responses · 91%</span>
             </div>
-            <div class="resp-track"><div class="resp-fill" style="width:91%; background:var(--gold);"></div></div>
+            <div class="resp-track"><div class="resp-fill" style="width:91%; background:var(--teal);"></div></div>
           </div>
           <div class="resp-item">
             <div class="resp-label">
               <span>Facility &amp; Safety Assessment</span>
-              <span>453 responses · 89%</span>
+              <span>0 responses · 0%</span>
             </div>
-            <div class="resp-track"><div class="resp-fill" style="width:89%; background:#d4a017;"></div></div>
+            <div class="resp-track"><div style="width:89%; background:#d4a017;"></div></div>
           </div>
         </div>
       </div>
@@ -336,16 +338,16 @@ include('./includes/sidebar.php');
         </div>
         <ul class="legend-list">
           <li>
-            <div class="legend-dot"><span style="background:#8b0000"></span> Closed</div>
-<span class="legend-count" style="color:#8b0000;">1</span>
+            <div class="legend-dot"><span style="background:var(--rose)"></span> Closed</div>
+            <span class="legend-count" style="color:var(--rose);">1</span>
           </li>
           <li>
-            <div class="legend-dot"><span style="background:var(--gold)"></span> Active</div>
+            <div class="legend-dot"><span style="background:var(--teal)"></span> Active</div>
+            <span class="legend-count" style="color:var(--teal);">1</span>
+          </li>
+          <li>
+            <div class="legend-dot"><span style="background:var(--gold)"></span> Pending</div>
             <span class="legend-count" style="color:var(--gold);">1</span>
-          </li>
-          <li>
-            <div class="legend-dot"><span style="background:#d4a017"></span> Pending</div>
-            <span class="legend-count" style="color:#d4a017;">1</span>
           </li>
         </ul>
       </div>
@@ -384,11 +386,12 @@ include('./includes/sidebar.php');
 </div>
 
 <script>
+const rose  = '#a02c2c';
 const teal  = '#1b6b6b';
 const gold  = '#c9972b';
-const amber = '#d4a017';
 
 // Pie Chart — Survey Status Distribution
+// Order: Closed (rose), Active (teal), Pending (gold)
 const ctxPie = document.getElementById('chartPie');
 new Chart(ctxPie, {
   type: 'doughnut',
@@ -396,7 +399,7 @@ new Chart(ctxPie, {
     labels: ['Closed', 'Active', 'Pending'],
     datasets: [{
       data: [1, 1, 1],
-      backgroundColor: [teal, gold, amber],
+      backgroundColor: [rose, teal, gold],
       borderWidth: 3,
       borderColor: '#ffffff',
       hoverOffset: 8
