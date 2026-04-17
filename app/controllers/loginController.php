@@ -126,4 +126,8 @@ if (isset($_POST['registerButton'])) {
         header("Location: /surveysystem/public/registration");
         exit();
     }
+}if (isset($_POST['logoutButton'])) {
+    session_destroy();
+    header("Location: /surveysystem/public/login");
+    exit();
 }

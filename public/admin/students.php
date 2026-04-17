@@ -3,6 +3,35 @@ include('../../app/middleware/admin.php');
 include('./includes/header.php');
 include('./includes/topbar.php');
 include('./includes/sidebar.php');
+include('../../app/config/config.php');
+
+// Fetch only registered students (non-admin)
+$sql    = "SELECT id, uuid, firstName, middleName, lastName, emailAddress, username 
+           FROM users 
+           WHERE role = 'user' 
+           ORDER BY firstName ASC";
+$result = mysqli_query($conn, $sql);
+
+$students = [];
+while ($row = mysqli_fetch_assoc($result)) {
+    $students[] = $row;
+}
+$totalStudents = count($students);
+
+// Get total published surveys count (for "X / Y" display)
+$totalSurveysRes = mysqli_query($conn, "SELECT COUNT(*) as cnt FROM surveys WHERE status = 'published'");
+$totalSurveys    = mysqli_fetch_assoc($totalSurveysRes)['cnt'] ?? 0;
+
+// Active = has at least one response; Inactive = none
+$activeCount   = 0;
+$inactiveCount = 0;
+foreach ($students as $s) {
+    $uid   = (int)$s['id'];
+    $check = mysqli_query($conn, "SELECT COUNT(*) as cnt FROM responses WHERE user_id = $uid");
+    $row   = mysqli_fetch_assoc($check);
+    if ($row['cnt'] > 0) $activeCount++;
+    else $inactiveCount++;
+}
 ?>
 
 <style>
@@ -27,175 +56,109 @@ include('./includes/sidebar.php');
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); }
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--paper);
-    color: var(--ink);
-  }
+  .main-wrapper { padding: 2.5rem 2.75rem 4rem; max-width: 1440px; margin: 0 auto; width: 100%; }
 
-  .main-wrapper {
-    padding: 2.5rem 2.75rem 4rem;
-    max-width: 1440px;
-    margin: 0 auto;
-    width: 100%;
-  }
-
-  /* Breadcrumbs */
   .breadcrumbs {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12.5px;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    margin-bottom: 2rem;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12.5px; font-weight: 500; letter-spacing: .04em;
+    text-transform: uppercase; color: var(--ink-3); margin-bottom: 2rem;
   }
-  .breadcrumbs a { color: var(--ink-3); text-decoration: none; transition: color 0.15s; }
+  .breadcrumbs a { color: var(--ink-3); text-decoration: none; transition: color .15s; }
   .breadcrumbs a:hover { color: var(--gold); }
   .breadcrumbs span { color: var(--paper-3); }
   .breadcrumbs .current-page { color: var(--ink-2); }
 
-  /* Header */
   header {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    margin-bottom: 2.25rem;
-    gap: 1rem;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 2.25rem; gap: 1rem; flex-wrap: wrap;
   }
   header h1 {
     font-family: 'DM Serif Display', serif;
     font-size: clamp(2rem, 4vw, 3rem);
-    font-weight: 400;
-    line-height: 1;
-    color: var(--ink);
+    font-weight: 400; line-height: 1; color: var(--ink);
   }
   header h1 em { font-style: italic; color: var(--gold); }
 
-  /* Toolbar */
-  .toolbar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
+  .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .search-wrap { position: relative; }
   .search-wrap svg {
-    position: absolute; left: 11px; top: 50%;
-    transform: translateY(-50%);
-    width: 15px; height: 15px;
-    stroke: var(--ink-3); fill: none; stroke-width: 2;
-    pointer-events: none;
+    position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+    width: 15px; height: 15px; stroke: var(--ink-3); fill: none; stroke-width: 2; pointer-events: none;
   }
   .search-wrap input {
-    background: var(--paper-2);
-    border: 1.5px solid var(--paper-3);
-    border-radius: var(--radius);
-    padding: 8px 14px 8px 34px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13.5px; color: var(--ink);
-    width: 240px; outline: none;
-    transition: border-color 0.15s;
+    background: var(--paper-2); border: 1.5px solid var(--paper-3);
+    border-radius: var(--radius); padding: 8px 14px 8px 34px;
+    font-family: 'DM Sans', sans-serif; font-size: 13.5px; color: var(--ink);
+    width: 240px; outline: none; transition: border-color .15s;
   }
   .search-wrap input::placeholder { color: var(--ink-3); }
   .search-wrap input:focus { border-color: var(--gold); background: #fff; }
-
   .filter-select {
-    background: var(--paper-2);
-    border: 1.5px solid var(--paper-3);
-    border-radius: var(--radius);
-    padding: 8px 14px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13.5px; color: var(--ink);
-    outline: none; cursor: pointer;
-    transition: border-color 0.15s;
+    background: var(--paper-2); border: 1.5px solid var(--paper-3);
+    border-radius: var(--radius); padding: 8px 14px;
+    font-family: 'DM Sans', sans-serif; font-size: 13.5px; color: var(--ink);
+    outline: none; cursor: pointer; transition: border-color .15s;
   }
   .filter-select:focus { border-color: var(--gold); }
 
-  /* Stat strip — 3 cards */
-  .stat-strip {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    margin-bottom: 2rem;
-  }
+  .stat-strip { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 2rem; }
   .stat-card {
-    background: var(--paper-2);
-    border: 1.5px solid var(--paper-3);
-    border-radius: var(--radius);
-    padding: 1.1rem 1.25rem;
-    position: relative; overflow: hidden;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    background: var(--paper-2); border: 1.5px solid var(--paper-3);
+    border-radius: var(--radius); padding: 1.1rem 1.25rem;
+    position: relative; overflow: hidden; transition: border-color .15s, box-shadow .15s;
   }
   .stat-card:hover { border-color: var(--gold); box-shadow: var(--shadow); }
   .stat-card::before {
-    content: ''; position: absolute;
-    top: 0; left: 0; right: 0; height: 3px;
-    background: var(--paper-3);
-    border-radius: 2px 2px 0 0;
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--paper-3); border-radius: 2px 2px 0 0;
   }
   .stat-card.gold::before { background: var(--gold); }
   .stat-card.teal::before { background: var(--teal); }
   .stat-card.rose::before { background: var(--rose); }
-
-  .stat-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px; }
+  .stat-label { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px; }
   .stat-value { font-family: 'DM Serif Display', serif; font-size: 2rem; line-height: 1; color: var(--ink); }
   .stat-sub   { font-size: 12px; color: var(--ink-3); margin-top: 5px; }
 
-  /* Table */
-  .table-wrap {
-    background: #fff;
-    border: 1.5px solid var(--paper-3);
-    border-radius: var(--radius);
-    overflow: hidden;
-    box-shadow: var(--shadow);
-  }
-
+  .table-wrap { background: #fff; border: 1.5px solid var(--paper-3); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
   thead tr { background: var(--paper-2); border-bottom: 1.5px solid var(--paper-3); }
   th {
-    padding: 12px 18px; text-align: left;
-    font-size: 11px; font-weight: 600;
-    letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--ink-3); white-space: nowrap;
+    padding: 12px 18px; text-align: left; font-size: 11px; font-weight: 600;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); white-space: nowrap;
   }
-  tbody tr { border-bottom: 1px solid var(--paper-2); transition: background 0.1s; }
+  tbody tr { border-bottom: 1px solid var(--paper-2); transition: background .1s; }
   tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover td { background: var(--paper); }
+  tbody tr:hover { background: var(--paper); }
   td { padding: 13px 18px; color: var(--ink-2); vertical-align: middle; }
 
-  /* Student cell */
   .student-cell { display: flex; align-items: center; gap: 10px; }
   .avatar {
     width: 36px; height: 36px; border-radius: 50%;
     background: var(--gold-light); border: 1.5px solid var(--paper-3);
     display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700; color: var(--gold-dark);
-    flex-shrink: 0;
+    font-size: 12px; font-weight: 700; color: var(--gold-dark); flex-shrink: 0;
   }
   .student-name { font-weight: 500; color: var(--ink); font-size: 14px; }
   .student-id   { font-size: 12px; color: var(--ink-3); margin-top: 1px; }
 
-  /* Badges — Active=teal, Inactive=rose */
+  .prog-wrap { display: flex; align-items: center; gap: 10px; min-width: 130px; }
+  .prog-track { flex: 1; height: 5px; background: var(--paper-2); border-radius: 3px; overflow: hidden; }
+  .prog-fill  { height: 100%; border-radius: 3px; background: var(--gold); transition: width .4s; }
+  .prog-num   { font-weight: 600; font-size: 13px; min-width: 36px; text-align: right; color: var(--ink); }
+
   .badge {
     display: inline-flex; align-items: center; gap: 5px;
-    padding: 4px 10px; border-radius: 20px;
-    font-size: 11.5px; font-weight: 600; white-space: nowrap;
+    padding: 4px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 600; white-space: nowrap;
   }
   .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-
   .badge-active   { background: var(--teal-lt); color: var(--teal); }
   .badge-active::before   { background: var(--teal); animation: pulse 1.5s infinite; }
-
   .badge-inactive { background: var(--rose-lt); color: var(--rose); }
   .badge-inactive::before { background: var(--rose); }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.8);} }
 
-  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(0.8);} }
-
-  /* Pagination */
   .pagination {
     display: flex; align-items: center; justify-content: space-between;
     padding: 14px 18px; border-top: 1.5px solid var(--paper-2);
@@ -203,20 +166,21 @@ include('./includes/sidebar.php');
   }
   .page-btns { display: flex; gap: 6px; }
   .page-btn {
-    width: 32px; height: 32px;
-    display: flex; align-items: center; justify-content: center;
-    border-radius: 7px; border: 1.5px solid var(--paper-3);
-    background: none; font-family: 'DM Sans', sans-serif;
-    font-size: 13px; color: var(--ink-2); cursor: pointer;
-    transition: all 0.12s;
+    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+    border-radius: 7px; border: 1.5px solid var(--paper-3); background: none;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--ink-2);
+    cursor: pointer; transition: all .12s;
   }
   .page-btn:hover { border-color: var(--ink-2); color: var(--ink); }
   .page-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .page-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
 
+  .empty-state { text-align: center; padding: 3rem 1rem; }
+  .empty-state p { color: var(--ink-3); font-size: 14px; }
+
   @media (max-width: 900px) {
     .main-wrapper { padding: 1.5rem 1.25rem 3rem; }
-    .stat-strip { grid-template-columns: repeat(2, 1fr); }
+    .stat-strip { grid-template-columns: repeat(2,1fr); }
   }
 </style>
 
@@ -240,31 +204,24 @@ include('./includes/sidebar.php');
         <option value="active">Active</option>
         <option value="inactive">Inactive</option>
       </select>
-      <select class="filter-select" id="surveyFilter" onchange="filterStudents()">
-        <option value="">All Surveys</option>
-        <option value="Mid-Term Faculty Evaluation">Mid-Term Faculty Evaluation</option>
-        <option value="Online Learning Experience">Online Learning Experience</option>
-        <option value="Facility &amp; Safety Assessment">Facility &amp; Safety Assessment</option>
-      </select>
     </div>
   </header>
 
-  <!-- 3-card stat strip -->
   <div class="stat-strip">
     <div class="stat-card gold">
       <div class="stat-label">Total Students</div>
-      <div class="stat-value">507</div>
-      <div class="stat-sub">Registered this term</div>
+      <div class="stat-value"><?= $totalStudents ?></div>
+      <div class="stat-sub">Registered users</div>
     </div>
     <div class="stat-card teal">
       <div class="stat-label">Active</div>
-      <div class="stat-value">395</div>
-      <div class="stat-sub">Recently participated</div>
+      <div class="stat-value"><?= $activeCount ?></div>
+      <div class="stat-sub">Answered at least one survey</div>
     </div>
     <div class="stat-card rose">
       <div class="stat-label">Inactive</div>
-      <div class="stat-value">112</div>
-      <div class="stat-sub">No recent activity</div>
+      <div class="stat-value"><?= $inactiveCount ?></div>
+      <div class="stat-sub">No responses yet</div>
     </div>
   </div>
 
@@ -274,45 +231,57 @@ include('./includes/sidebar.php');
         <thead>
           <tr>
             <th>Student</th>
-            <th>Course / Section</th>
-            <th>Latest Survey</th>
-            <th>Last Active</th>
-            <th style="text-align:center;">Surveys Completed</th>
+            <th>Email</th>
+            <th>Username</th>
+            <th style="text-align:center;">Surveys Answered</th>
+            <th>Completion</th>
             <th>Status</th>
           </tr>
         </thead>
         <tbody id="studentTable">
-          <?php
-          $students = [
-            ['name'=>'Sophia Reyes',    'id'=>'USR-4011', 'course'=>'BSIT 3-A',  'survey'=>'Mid-Term Faculty Evaluation',    'date'=>'Mar 28, 2026', 'completed'=>3, 'status'=>'active'],
-            ['name'=>'James Okafor',    'id'=>'USR-8029', 'course'=>'BSCS 2-B',  'survey'=>'Online Learning Experience',     'date'=>'Mar 27, 2026', 'completed'=>2, 'status'=>'active'],
-            ['name'=>'Aiko Tanaka',     'id'=>'USR-1013', 'course'=>'BSED 4-A',  'survey'=>'Mid-Term Faculty Evaluation',    'date'=>'Mar 25, 2026', 'completed'=>3, 'status'=>'active'],
-            ['name'=>'Luca Bianchi',    'id'=>'USR-5057', 'course'=>'BSBA 1-C',  'survey'=>'Online Learning Experience',     'date'=>'Mar 20, 2026', 'completed'=>1, 'status'=>'inactive'],
-            ['name'=>'Fatima Hassan',   'id'=>'USR-7077', 'course'=>'BSIT 2-A',  'survey'=>'Facility & Safety Assessment',   'date'=>'Mar 10, 2026', 'completed'=>1, 'status'=>'inactive'],
-            ['name'=>'Carlos Mendoza',  'id'=>'USR-3021', 'course'=>'BSCS 3-C',  'survey'=>'Mid-Term Faculty Evaluation',    'date'=>'Mar 28, 2026', 'completed'=>3, 'status'=>'active'],
-            ['name'=>'Priya Nair',      'id'=>'USR-6044', 'course'=>'BSED 2-B',  'survey'=>'Online Learning Experience',     'date'=>'Mar 26, 2026', 'completed'=>2, 'status'=>'active'],
-            ['name'=>'Marco Santos',    'id'=>'USR-9012', 'course'=>'BSBA 3-A',  'survey'=>'Mid-Term Faculty Evaluation',    'date'=>'Feb 28, 2026', 'completed'=>1, 'status'=>'inactive'],
-          ];
+          <?php foreach ($students as $s):
+            $fullName = trim(
+              htmlspecialchars($s['firstName']) . ' ' .
+              (!empty($s['middleName']) ? htmlspecialchars($s['middleName'][0]) . '. ' : '') .
+              htmlspecialchars($s['lastName'])
+            );
+            $initials  = strtoupper(substr($s['firstName'], 0, 1) . substr($s['lastName'], 0, 1));
+            $uid       = (int)$s['id'];
 
-          foreach ($students as $s):
-            $initials = implode('', array_map(fn($w) => strtoupper($w[0]), explode(' ', $s['name'])));
+            // Count distinct surveys this student has responded to
+            $surveyRes   = mysqli_query($conn, "SELECT COUNT(DISTINCT survey_id) as cnt FROM responses WHERE user_id = $uid");
+            $surveyCount = (int)mysqli_fetch_assoc($surveyRes)['cnt'];
+
+            $status = $surveyCount > 0 ? 'active' : 'inactive';
+            $pct    = $totalSurveys > 0 ? round(($surveyCount / $totalSurveys) * 100) : 0;
           ?>
-          <tr data-status="<?= $s['status'] ?>" data-survey="<?= htmlspecialchars($s['survey']) ?>">
+          <tr data-status="<?= $status ?>" 
+              data-name="<?= strtolower(strip_tags($fullName)) ?>" 
+              data-id="<?= strtolower(htmlspecialchars($s['uuid'])) ?>">
             <td>
               <div class="student-cell">
                 <div class="avatar"><?= $initials ?></div>
                 <div>
-                  <div class="student-name"><?= htmlspecialchars($s['name']) ?></div>
-                  <div class="student-id"><?= $s['id'] ?></div>
+                  <div class="student-name"><?= $fullName ?></div>
+                  <div class="student-id"><?= htmlspecialchars($s['uuid']) ?></div>
                 </div>
               </div>
             </td>
-            <td style="font-size:13.5px;"><?= $s['course'] ?></td>
-            <td style="font-size:13.5px;"><?= htmlspecialchars($s['survey']) ?></td>
-            <td style="color:var(--ink-3); font-size:13px;"><?= $s['date'] ?></td>
-            <td style="font-weight:600; color:var(--ink); text-align:center;"><?= $s['completed'] ?> / 3</td>
+            <td style="font-size:13.5px;"><?= htmlspecialchars($s['emailAddress']) ?></td>
+            <td style="font-size:13.5px;"><?= htmlspecialchars($s['username']) ?></td>
+            <td style="font-weight:600; color:var(--ink); text-align:center;">
+              <?= $surveyCount ?> / <?= $totalSurveys ?>
+            </td>
             <td>
-              <?php if ($s['status'] === 'active'): ?>
+              <div class="prog-wrap">
+                <div class="prog-track">
+                  <div class="prog-fill" style="width:<?= $pct ?>%;"></div>
+                </div>
+                <span class="prog-num"><?= $pct ?>%</span>
+              </div>
+            </td>
+            <td>
+              <?php if ($status === 'active'): ?>
                 <span class="badge badge-active">Active</span>
               <?php else: ?>
                 <span class="badge badge-inactive">Inactive</span>
@@ -323,55 +292,112 @@ include('./includes/sidebar.php');
         </tbody>
       </table>
 
-      <div id="emptyState" style="display:none; text-align:center; padding:3rem 1rem;">
-        <p style="color:var(--ink-3); font-size:14px;">No students match your filters.</p>
+      <div id="emptyState" style="display:none;" class="empty-state">
+        <p>No students match your filters.</p>
       </div>
 
       <div class="pagination">
-        <span id="pagInfo">Showing 1–8 of 507 students</span>
-        <div class="page-btns">
-          <button class="page-btn">
-            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <button class="page-btn active">1</button>
-          <button class="page-btn">2</button>
-          <button class="page-btn">3</button>
-          <button class="page-btn">
-            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-        </div>
+        <span id="pagInfo"></span>
+        <div class="page-btns" id="pageButtons"></div>
       </div>
     </div>
   </section>
 </div>
 
 <script>
-function filterStudents() {
-  const q      = document.getElementById('studentSearch').value.toLowerCase();
-  const status = document.getElementById('statusFilter').value;
-  const survey = document.getElementById('surveyFilter').value;
-  const rows   = document.querySelectorAll('#studentTable tr');
-  let visible  = 0;
+  const ROWS_PER_PAGE = 10;
+  let currentPage = 1;
+  let visibleRows = [];
 
-  rows.forEach(row => {
-    const name    = row.querySelector('.student-name')?.textContent.toLowerCase() || '';
-    const id      = row.querySelector('.student-id')?.textContent.toLowerCase() || '';
-    const rstatus = row.dataset.status;
-    const rsurvey = row.dataset.survey;
+  function getAllRows() {
+    return Array.from(document.querySelectorAll('#studentTable tr'));
+  }
 
-    const qOk      = !q      || name.includes(q) || id.includes(q);
-    const statusOk = !status || rstatus === status;
-    const surveyOk = !survey || rsurvey === survey;
-    const show     = qOk && statusOk && surveyOk;
+  function filterStudents() {
+    const q      = document.getElementById('studentSearch').value.toLowerCase();
+    const status = document.getElementById('statusFilter').value;
+    const rows   = getAllRows();
 
-    row.style.display = show ? '' : 'none';
-    if (show) visible++;
+    visibleRows = rows.filter(row => {
+      const name    = row.dataset.name || '';
+      const id      = row.dataset.id   || '';
+      const rstatus = row.dataset.status;
+      const qOk     = !q      || name.includes(q) || id.includes(q);
+      const statusOk = !status || rstatus === status;
+      return qOk && statusOk;
+    });
+
+    currentPage = 1;
+    renderPage();
+  }
+
+  function renderPage() {
+    const rows  = getAllRows();
+    const total = visibleRows.length;
+    const start = (currentPage - 1) * ROWS_PER_PAGE;
+    const end   = start + ROWS_PER_PAGE;
+
+    rows.forEach(r => r.style.display = 'none');
+    visibleRows.slice(start, end).forEach(r => r.style.display = '');
+
+    document.getElementById('emptyState').style.display = total === 0 ? 'block' : 'none';
+    document.getElementById('pagInfo').textContent = total === 0
+      ? 'No students found'
+      : `Showing ${start + 1}–${Math.min(end, total)} of ${total} students`;
+
+    renderPageButtons(total);
+  }
+
+  function renderPageButtons(total) {
+    const totalPages = Math.ceil(total / ROWS_PER_PAGE);
+    const container  = document.getElementById('pageButtons');
+    container.innerHTML = '';
+
+    const prev = makeBtn('', true);
+    prev.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>`;
+    prev.disabled  = currentPage === 1;
+    prev.onclick   = () => { if (currentPage > 1) { currentPage--; renderPage(); } };
+    container.appendChild(prev);
+
+    pageRange(currentPage, totalPages).forEach(p => {
+      if (p === '...') {
+        const dots = document.createElement('span');
+        dots.textContent = '…';
+        dots.style.cssText = 'padding:0 4px;line-height:32px;color:var(--ink-3);';
+        container.appendChild(dots);
+      } else {
+        const btn = makeBtn(p, false);
+        if (p === currentPage) btn.classList.add('active');
+        btn.onclick = () => { currentPage = p; renderPage(); };
+        container.appendChild(btn);
+      }
+    });
+
+    const next = makeBtn('', true);
+    next.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>`;
+    next.disabled  = currentPage === totalPages || totalPages === 0;
+    next.onclick   = () => { if (currentPage < totalPages) { currentPage++; renderPage(); } };
+    container.appendChild(next);
+  }
+
+  function makeBtn(label, isIcon) {
+    const btn = document.createElement('button');
+    btn.className = 'page-btn';
+    if (!isIcon) btn.textContent = label;
+    return btn;
+  }
+
+  function pageRange(current, total) {
+    if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+    if (current <= 4) return [1,2,3,4,5,'...',total];
+    if (current >= total - 3) return [1,'...',total-4,total-3,total-2,total-1,total];
+    return [1,'...',current-1,current,current+1,'...',total];
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    visibleRows = getAllRows();
+    renderPage();
   });
-
-  document.getElementById('emptyState').style.display = visible === 0 ? 'block' : 'none';
-  document.getElementById('pagInfo').textContent =
-    'Showing 1–' + visible + ' of 507 students';
-}
 </script>
 
 <?php include('./includes/footer.php'); ?>
