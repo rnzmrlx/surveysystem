@@ -84,7 +84,7 @@ if (!empty($user['avatar'])) {
     display: flex;
     align-items: center;
     margin-left: auto;
-    margin-right: 2.75rem;
+    margin-right: 0.5rem;
     list-style: none;
     padding: 0;
     margin-bottom: 0;
@@ -95,7 +95,7 @@ if (!empty($user['avatar'])) {
     color: var(--gold);
     font-size: 20px;
     position: relative;
-    padding: 4px 10px;
+    padding: 4px 8px;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
@@ -107,22 +107,13 @@ if (!empty($user['avatar'])) {
     color: #000;
   }
 
-  .header-nav .badge-number {
-    background: var(--gold) !important;
-    color: #fff !important;
-    font-size: 10px;
+.header-nav .badge-number {
+    background: transparent !important;
+    color: #000000 !important;
+    font-size: 11px;
     font-weight: 800;
-    position: absolute;
-    top: -2px;
-    right: 2px;
-    border-radius: 50%;
-    width: 17px;
-    height: 17px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-  }
+    font-family: 'DM Sans', sans-serif;
+}
 
   .header-nav .nav-profile {
     display: flex;
@@ -182,12 +173,15 @@ if (!empty($user['avatar'])) {
 .dropdown-menu.profile .dropdown-header {
   text-align: center;
 }
+
 .dropdown-item {
   font-size: 13.5px !important;
+  border-radius: 0 !important;
 }
 .dropdown-item:hover {
   background: var(--paper) !important;
   color: var(--gold) !important;
+  border-radius: 0 !important;
 }
   .dropdown-divider {
     border-color: var(--paper-3) !important;
@@ -339,15 +333,13 @@ if (!empty($user['avatar'])) {
   }
 </style>
 
-<header class="header" style="padding: 0 20px;">
-<a href="index.php" class="logo">
-    <img src="/surveysystem/public/user/assets/img/logo.png" alt="Logo" style="height: 32px; width: auto;">
+<header class="header" style="padding: 0 10px;">
+  <a href="index.php" class="logo d-flex align-items-center">
+    <img src="/surveysystem/public/user/assets/img/logo.png" alt="Logo" style="height: 32px; width: auto; margin-right: 6px;">
     <span class="d-none d-lg-block">Quick<em>Query</em></span>
-</a>
-  <i class="bi bi-list toggle-sidebar-btn" id="toggleSidebar" style="margin-left: auto;"></i>
-
-  <ul class="header-nav" style="margin-right: -1rem;">
-
+  </a>
+  <i class="bi bi-list toggle-sidebar-btn" id="toggleSidebar" style="margin-left: 96px;"></i>
+<ul class="header-nav">  <!-- remove the style attribute entirely -->
     <!-- ── Notifications ── -->
     <li class="nav-item dropdown">
       <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown" id="userNotifBell">
@@ -381,8 +373,7 @@ if (!empty($user['avatar'])) {
           <hr class="dropdown-divider m-0">
         </li>
         <li class="dropdown-footer text-center py-2">
-          <a href="notifications.php" style="font-size:13px; color:var(--ink-3); text-decoration:underline;">Show all notifications</a>
-        </li>
+<a href="/surveysystem/public/user/notifications.php" style="font-size:13px; color:var(--ink-3); text-decoration:underline;">Show all notifications</a>        </li>
       </ul>
     </li>
 
@@ -429,12 +420,14 @@ if (!empty($user['avatar'])) {
   (function() {
     const ENDPOINT = '/surveysystem/app/controllers/userNotificationController.php';
 
-    const icons = {
-      survey_published: 'bi-megaphone',
-      closing_soon: 'bi-clock',
-      survey_closed: 'bi-lock',
-      response_recorded: 'bi-check2-circle',
-    };
+const icons = {
+    survey_published:  'bi-megaphone',
+    closing_soon:      'bi-clock',
+    survey_closed:     'bi-lock',
+    response_recorded: 'bi-check2-circle',
+    pending_survey:    'bi-hourglass-split',  // ✅ ADD
+    inactivity:        'bi-person-dash',       // ✅ ADD
+};
 
     function timeAgo(dateStr) {
       const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
@@ -444,20 +437,17 @@ if (!empty($user['avatar'])) {
       return Math.floor(diff / 86400) + 'd ago';
     }
 
-    function notifLabel(type) {
-      switch (type) {
-        case 'survey_published':
-          return '📋 New Survey Available';
-        case 'closing_soon':
-          return '⏰ Closing Soon';
-        case 'survey_closed':
-          return '🔒 Survey Closed';
-        case 'response_recorded':
-          return '✅ Response Recorded';
-        default:
-          return '🔔 Notification';
-      }
+function notifLabel(type) {
+    switch (type) {
+        case 'survey_published':  return '📋 New Survey Available';
+        case 'closing_soon':      return '⏰ Closing Soon';
+        case 'survey_closed':     return '🔒 Survey Closed';
+        case 'response_recorded': return '✅ Response Recorded';
+        case 'pending_survey':    return '📝 Pending Survey';      // ✅ ADD
+        case 'inactivity':        return '💤 Reminder';            // ✅ ADD
+        default:                  return '🔔 Notification';
     }
+}
 
     function renderItems(notifications) {
       if (!notifications || !notifications.length) {
@@ -512,17 +502,17 @@ if (!empty($user['avatar'])) {
           const latest5 = (data.notifications ?? []).slice(0, 5);
           document.getElementById('userNotifList').innerHTML = renderItems(latest5);
 
-          document.querySelectorAll('#userNotifList .notification-item').forEach(function(item) {
-            item.addEventListener('click', function() {
+document.querySelectorAll('#userNotifList .notification-item').forEach(function(item) {
+            const clone = item.cloneNode(true);
+            item.parentNode.replaceChild(clone, item);
+            clone.addEventListener('click', function() {
               const id = this.dataset.id;
               const title = this.querySelector('.notif-title');
               const msg = this.querySelector('.notif-msg');
               if (title) title.style.fontWeight = '400';
               if (msg) msg.style.fontWeight = '400';
               this.classList.remove('unread');
-              fetch(ENDPOINT + '?action=mark_one&id=' + id, {
-                  method: 'POST'
-                })
+              fetch(ENDPOINT + '?action=mark_one&id=' + id, { method: 'POST' })
                 .then(() => loadNotifications());
             });
           });
@@ -535,10 +525,6 @@ if (!empty($user['avatar'])) {
           </li>`;
         });
     }
-
-    document.getElementById('userNotifBell').addEventListener('click', function() {
-      loadNotifications();
-    });
 
     document.getElementById('userMarkAllRead').addEventListener('click', function(e) {
       e.preventDefault();

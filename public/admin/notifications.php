@@ -584,7 +584,6 @@ include __DIR__ . '/includes/sidebar.php';
       <div class="notif-filters" id="filterTabs" role="tablist" aria-label="Notification filters">
         <button class="filter-btn active" data-type="all" role="tab" aria-selected="true">All</button>
         <button class="filter-btn" data-type="answered" role="tab" aria-selected="false">Answered</button>
-        <button class="filter-btn" data-type="accessed" role="tab" aria-selected="false">Accessed</button>
         <button class="filter-btn" data-type="auto_closed" role="tab" aria-selected="false">Closed</button>
         <button class="filter-btn" data-type="user_registered" role="tab" aria-selected="false">New Users</button>
       </div>

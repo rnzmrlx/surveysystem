@@ -607,7 +607,6 @@ function icon_warn($color)
             </div>
             <h2>Thank You!</h2>
             <p>Your response has been recorded successfully.</p>
-            <a href="mysurvey.php" class="sv-btn-outline">← Back to Surveys</a>
           </div>
 
         <?php elseif ($already_submitted): ?>

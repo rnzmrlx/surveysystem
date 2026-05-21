@@ -924,7 +924,6 @@ $avatarSrc   = !empty($user['avatar']) ? '/surveysystem/' . htmlspecialchars($us
     <button class="tab-btn active" onclick="switchTab('personal', this)"><i class="bi bi-person"></i> Personal</button>
     <button class="tab-btn" onclick="switchTab('address', this)"><i class="bi bi-geo-alt"></i> Address</button>
     <button class="tab-btn" onclick="switchTab('security', this)"><i class="bi bi-shield-lock"></i> Security</button>
-    <button class="tab-btn" onclick="switchTab('notifications', this)"><i class="bi bi-bell"></i> Notifications</button>
     <button class="tab-btn" onclick="switchTab('account', this)"><i class="bi bi-info-circle"></i> Account</button>
   </div>
 
@@ -1092,31 +1091,6 @@ $avatarSrc   = !empty($user['avatar']) ? '/surveysystem/' . htmlspecialchars($us
         </div>
         <div style="margin-top:1.25rem;">
           <button type="submit" class="btn-save teal"><i class="bi bi-shield-lock"></i> Change Password</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- TAB: Notifications -->
-  <div class="tab-panel" id="tab-notifications">
-    <div class="profile-section sky">
-      <h3><span class="section-icon sky"><i class="bi bi-bell"></i></span> Notification Preferences</h3>
-      <form method="POST">
-        <input type="hidden" name="action" value="update_notifications">
-        <div class="toggle-list">
-          <div class="toggle-item">
-            <div class="toggle-item-info">
-              <h4><i class="bi bi-bell" style="color:var(--sky);margin-right:5px;"></i> System Notifications</h4>
-              <p>In-app notifications for system events and updates.</p>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" name="notif_system" <?= !empty($user['notif_system']) ? 'checked' : '' ?>>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-        </div>
-        <div style="margin-top:1.5rem;">
-          <button type="submit" class="btn-save sky"><i class="bi bi-check-lg"></i> Save Preferences</button>
         </div>
       </form>
     </div>

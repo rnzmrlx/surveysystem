@@ -1,6 +1,8 @@
-<?php session_start();
+<?php
+session_start();
 $root = dirname(__DIR__);
 include_once($root . "/config/config.php");
+include_once($root . "/controllers/notificationController.php"); 
 
 function generate_uuid()
 {
@@ -17,14 +19,10 @@ function generate_uuid()
     );
 }
 
-// ═══════════════════════════════════════════════════════════
-// LOGIN
-// ═══════════════════════════════════════════════════════════
 if (isset($_POST['loginButton'])) {
     $username = $_POST['username'];
     $inputPassword = $_POST['password'];
 
-    // Fetch user by username only — never compare password in SQL
     $loginQuery = "SELECT `id`, `firstName`, `lastName`, `emailAddress`, `username`, `password`, `role`, `avatar` FROM `users` WHERE username = ? LIMIT 1";
     $stmt = $conn->prepare($loginQuery);
 
@@ -37,13 +35,10 @@ if (isset($_POST['loginButton'])) {
             $data = $result->fetch_assoc();
             $storedHash = $data['password'];
 
-            // Support plain text (old) and bcrypt (new)
             $verified = false;
             if (password_verify($inputPassword, $storedHash)) {
-                // Already bcrypt
                 $verified = true;
             } elseif ($storedHash === $inputPassword) {
-                // Plain text match — upgrade to bcrypt now
                 $verified = true;
                 $newHash = password_hash($inputPassword, PASSWORD_DEFAULT);
                 $upg = $conn->prepare("UPDATE users SET password=? WHERE id=?");
@@ -65,7 +60,7 @@ if (isset($_POST['loginButton'])) {
                     'firstName' => $data['firstName'],
                     'lastName'  => $data['lastName'],
                     'username'  => $data['username'],
-                    'avatar'    => $data['avatar'] ?? '',  // ← needed for topbar photo
+                    'avatar'    => $data['avatar'] ?? '',
                 ];
 
                 $_SESSION['message'] = "Welcome $fullName";
@@ -97,9 +92,6 @@ if (isset($_POST['loginButton'])) {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
-// REGISTER
-// ═══════════════════════════════════════════════════════════
 if (isset($_POST['registerButton'])) {
     $firstName       = $_POST['firstName'];
     $middleName      = $_POST['middleName'];
@@ -114,7 +106,6 @@ if (isset($_POST['registerButton'])) {
     $role            = 'user';
     $uuid            = generate_uuid();
 
-    // Validate email format
     if (!filter_var($emailAddress, FILTER_VALIDATE_EMAIL)) {
         $_SESSION['message'] = "Invalid email format";
         $_SESSION['code']    = "error";
@@ -122,7 +113,6 @@ if (isset($_POST['registerButton'])) {
         exit();
     }
 
-    // Check if email already exists
     $chkEmail = $conn->prepare("SELECT id FROM users WHERE emailAddress = ? LIMIT 1");
     $chkEmail->bind_param('s', $emailAddress);
     $chkEmail->execute();
@@ -135,7 +125,6 @@ if (isset($_POST['registerButton'])) {
     }
     $chkEmail->close();
 
-    // Check if username already exists
     $chkUser = $conn->prepare("SELECT id FROM users WHERE username = ? LIMIT 1");
     $chkUser->bind_param('s', $username);
     $chkUser->execute();
@@ -148,7 +137,6 @@ if (isset($_POST['registerButton'])) {
     }
     $chkUser->close();
 
-    // Check passwords match
     if ($password !== $confirmPassword) {
         $_SESSION['message'] = "Passwords do not match";
         $_SESSION['code']    = "error";
@@ -156,14 +144,17 @@ if (isset($_POST['registerButton'])) {
         exit();
     }
 
-    // Hash the password before saving
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-    // Insert user with hashed password
     $ins = $conn->prepare("INSERT INTO `users`(`uuid`,`firstName`,`middleName`,`lastName`,`emailAddress`,`username`,`password`,`street`,`barangay`,`city`,`role`) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
     $ins->bind_param('sssssssssss', $uuid, $firstName, $middleName, $lastName, $emailAddress, $username, $hashedPassword, $street, $barangay, $city, $role);
 
     if ($ins->execute()) {
+        $newUserId = $conn->insert_id;
+        $fullName  = trim("$firstName $lastName");
+        $msg       = "New user registered: {$fullName} ({$emailAddress})";
+        notif_insert($conn, 'user_registered', $msg, null, $newUserId);
+
         $_SESSION['message'] = "Registration successful. Please login.";
         $_SESSION['code']    = "success";
         header("Location: /surveysystem/public/login");
@@ -177,9 +168,6 @@ if (isset($_POST['registerButton'])) {
     $ins->close();
 }
 
-// ═══════════════════════════════════════════════════════════
-// LOGOUT
-// ═══════════════════════════════════════════════════════════
 if (isset($_POST['logoutButton'])) {
     session_destroy();
     header("Location: /surveysystem/public/login");

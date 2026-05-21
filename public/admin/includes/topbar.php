@@ -18,7 +18,20 @@ $_topbarInitials = strtoupper(
     height: 60px;
     padding-left: 20px;
   }
-
+@media (max-width: 991px) {
+  .header > div:first-child {
+    flex: 1;
+  }
+  .header-nav {
+    flex: 0;
+    margin-right: 20px !important;
+  }
+}
+@media (min-width: 1200px) {
+    .header-nav {
+        margin-right: 2rem !important;
+    }
+}
   .header .logo span {
     font-family: 'DM Serif Display', serif;
     font-size: 22px;
@@ -65,8 +78,7 @@ $_topbarInitials = strtoupper(
     font-weight: 600;
     color: var(--ink-2);
     font-size: 14px;
-  }
-
+}
   .dropdown-menu {
     background: #fff;
     border: 1.5px solid var(--paper-3) !important;
@@ -100,16 +112,14 @@ $_topbarInitials = strtoupper(
 
 <header id="header" class="header fixed-top d-flex align-items-center">
 
-  <div class="d-flex align-items-center justify-content-between">
-<a href="index.php" class="logo d-flex align-items-center">
+<div class="d-flex align-items-center w-100-sm">
+  <a href="index.php" class="logo d-flex align-items-center">
   <img src="assets/img/logo.png" alt="Logo" style="height: 32px; width: auto; margin-right: 6px;">
   <span class="d-none d-lg-block">Quick<em>Query</em></span>
 </a>
-    <i class="bi bi-list toggle-sidebar-btn"></i>
-  </div>
+<i class="bi bi-list toggle-sidebar-btn" style="margin-left: 0px;"></i>  </div>
 
-  <nav class="header-nav ms-auto me-3">
-    <ul class="d-flex align-items-center">
+<nav class="header-nav ms-auto" style="margin-right: 6px;">    <ul class="d-flex align-items-center">
 
       <!-- ── Notifications ── -->
       <li class="nav-item dropdown">
@@ -144,8 +154,8 @@ $_topbarInitials = strtoupper(
             <hr class="dropdown-divider m-0">
           </li>
           <li class="dropdown-footer text-center py-2">
-            <a href="notifications.php" style="font-size:13px;">Show all notifications</a>
-          </li>
+<a href="notifications.php" style="font-size:13px; color:var(--ink-3); text-decoration:underline;">Show all notifications</a>          
+</li>
 
         </ul>
       </li>

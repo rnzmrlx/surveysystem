@@ -11,20 +11,23 @@ function user_notif_insert($conn, $userId, $type, $message, $surveyId = null, $s
     if ($surveyId) {
         $check = $conn->prepare("
             SELECT id FROM user_notifications
-            WHERE user_id = ? AND type = ? AND survey_id = ?
+            WHERE user_id   = ?
+              AND type      = ?
+              AND survey_id = ?
+              AND DATE(created_at) = CURDATE()
             LIMIT 1
         ");
         $check->bind_param('isi', $userId, $type, $surveyId);
         $check->execute();
         $exists = $check->get_result()->fetch_assoc();
         $check->close();
-        if ($exists) return; // already notified
+        if ($exists) return; // already notified today
     }
 
     $stmt = $conn->prepare("
-    INSERT INTO user_notifications (user_id, type, message, survey_id, survey_title)
-    VALUES (?, ?, ?, ?, ?)
-");
+        INSERT INTO user_notifications (user_id, type, message, survey_id, survey_title)
+        VALUES (?, ?, ?, ?, ?)
+    ");
     $stmt->bind_param('issis', $userId, $type, $message, $surveyId, $surveyTitle);
     $stmt->execute();
     $stmt->close();
@@ -64,11 +67,33 @@ function user_notif_response_recorded($conn, $userId, $surveyId, $surveyTitle)
     user_notif_insert($conn, $userId, 'response_recorded', $msg, $surveyId, $surveyTitle);
 }
 
+// ── NOTIFY users about surveys they haven't answered yet (pending) ────────
+function user_notif_pending_surveys($conn, $userId)
+{
+    // Find published surveys the user has NOT responded to yet
+    $stmt = $conn->prepare("
+        SELECT id, title FROM surveys
+        WHERE status = 'published'
+          AND id NOT IN (
+              SELECT DISTINCT survey_id FROM responses WHERE user_id = ?
+          )
+    ");
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $pending = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+
+    foreach ($pending as $survey) {
+        $msg = "You have a pending survey: \"{$survey['title']}\". Please take a moment to respond!";
+        user_notif_insert($conn, $userId, 'pending_survey', $msg, (int)$survey['id'], $survey['title']);
+    }
+}
+
 // ── FETCH notifications for the logged-in user ────────────────────────────
 function user_notif_fetch($conn, $userId, $limit = 20)
 {
     $stmt = $conn->prepare("
-        SELECT id, type, message, survey_title, is_read, created_at
+        SELECT id, type, message, survey_id, survey_title, is_read, created_at
         FROM   user_notifications
         WHERE  user_id = ?
         ORDER  BY created_at DESC
@@ -120,13 +145,11 @@ if (basename(__FILE__) === basename($_SERVER['SCRIPT_FILENAME'] ?? '')) {
     $userId = (int) ($_SESSION['authUser']['user_id'] ?? 0);
     $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
-    if ($action === 'fetch') {
+if ($action === 'fetch') {
         ob_end_clean();
         echo json_encode(user_notif_fetch($conn, $userId));
         exit;
     }
-
-    // ── ADD THIS ──────────────────────────────────────────────────────────
     if ($action === 'fetch_all') {
         $stmt = $conn->prepare("
             SELECT id, type, message, survey_id, survey_title, is_read, created_at
@@ -143,8 +166,6 @@ if (basename(__FILE__) === basename($_SERVER['SCRIPT_FILENAME'] ?? '')) {
         echo json_encode(['notifications' => $rows]);
         exit;
     }
-    // ─────────────────────────────────────────────────────────────────────
-
 
     if ($action === 'mark_read') {
         user_notif_mark_read($conn, $userId);
@@ -152,7 +173,20 @@ if (basename(__FILE__) === basename($_SERVER['SCRIPT_FILENAME'] ?? '')) {
         echo json_encode(['success' => true]);
         exit;
     }
-
+if ($action === 'mark_one') {
+    $id = (int)($_GET['id'] ?? 0);
+    if ($id > 0) {
+        $stmt = $conn->prepare(
+            "UPDATE user_notifications SET is_read = 1 WHERE id = ? AND user_id = ?"
+        );
+        $stmt->bind_param('ii', $id, $userId);
+        $stmt->execute();
+        $stmt->close();
+    }
+    ob_end_clean();
+    echo json_encode(['success' => true]);
+    exit;
+}
     ob_end_clean();
     echo json_encode(['error' => 'Unknown action']);
     exit;

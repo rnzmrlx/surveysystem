@@ -185,7 +185,6 @@ if ($action === 'update') {
     }
     $stmt->close();
 
-    // Replace all questions (delete + re-insert preserves simplicity)
     $conn->query("DELETE FROM questions WHERE survey_id = $id");
 
     foreach ($questions as $q) {
@@ -249,18 +248,15 @@ if ($action === 'publish' || $action === 'close') {
     $stmt->execute();
     $stmt->close();
 
-    if ($action === 'publish') {
-        $testInsert = $conn->query("INSERT INTO user_notifications (user_id, type, message, survey_id, survey_title) VALUES (14, 'survey_published', 'direct debug', $id, '$surveyTitle')");
-        error_log('Direct insert: ' . ($testInsert ? 'OK' : $conn->error));
-
-        $users = $conn->query("SELECT id FROM users WHERE role = 'user'");
-        error_log('Users found: ' . $users->num_rows);
-
-        user_notif_survey_published($conn, $id, $surveyTitle);
-    }
+   if ($action === 'publish') {
+    notif_insert($conn, 'published', $surveyTitle, $id);
+ user_notif_survey_published($conn, $id, $surveyTitle);
+}
 
     if ($action === 'close') {
+        // Notify admin panel
         notif_insert($conn, 'auto_closed', $surveyTitle, $id);
+        // Notify users who responded via topbar
         user_notif_survey_closed($conn, $id, $surveyTitle);
     }
 

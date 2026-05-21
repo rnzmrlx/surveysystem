@@ -35,7 +35,6 @@ while ($survey = $closingSoon->fetch_assoc()) {
     ");
 
     while ($user = $users->fetch_assoc()) {
-        // Check not already notified today for closing_soon on this survey
         $already = $conn->query("
             SELECT id FROM user_notifications
             WHERE user_id  = {$user['id']}
@@ -62,22 +61,18 @@ while ($survey = $closingSoon->fetch_assoc()) {
 // ── 2. INACTIVITY — users with no response in 7 days ─────────────────────
 $cutoff = date('Y-m-d H:i:s', strtotime('-7 days'));
 
-// Find users who registered more than 7 days ago and have no recent response
 $inactiveUsers = $conn->query("
     SELECT u.id FROM users u
     WHERE u.role = 'user'
       AND (
-          -- No responses at all
           NOT EXISTS (SELECT 1 FROM responses r WHERE r.user_id = u.id)
           OR
-          -- Last response was more than 7 days ago
           (SELECT MAX(submitted_at) FROM responses r WHERE r.user_id = u.id) < '{$cutoff}'
       )
       AND u.created_at < '{$cutoff}'
 ");
 
 while ($user = $inactiveUsers->fetch_assoc()) {
-    // Only send one inactivity notification every 7 days
     $alreadyNotified = $conn->query("
         SELECT id FROM user_notifications
         WHERE user_id = {$user['id']}
@@ -87,7 +82,6 @@ while ($user = $inactiveUsers->fetch_assoc()) {
     ")->fetch_assoc();
 
     if (!$alreadyNotified) {
-        // Check there are published surveys available for them
         $hasSurveys = $conn->query("
             SELECT COUNT(*) AS cnt FROM surveys
             WHERE status = 'published'
@@ -111,7 +105,6 @@ while ($user = $inactiveUsers->fetch_assoc()) {
 }
 
 // ── 3. AUTO-CLOSE expired surveys + notify affected users & admin ─────────
-// This mirrors the auto_close action in surveyController but also fires notifs
 $expired = $conn->query("
     SELECT id, title FROM surveys
     WHERE status = 'published'
@@ -120,7 +113,6 @@ $expired = $conn->query("
 ");
 
 while ($survey = $expired->fetch_assoc()) {
-    // Close the survey
     $conn->query("UPDATE surveys SET status = 'closed' WHERE id = {$survey['id']}");
 
     // Notify admin

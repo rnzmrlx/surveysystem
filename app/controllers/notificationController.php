@@ -10,6 +10,7 @@ function notif_insert($conn, $type, $surveyTitle, $surveyId = null, $userId = nu
     $message = match ($type) {
         'accessed'        => "Someone accessed the survey: \"{$surveyTitle}\"",
         'answered'        => "Someone submitted a response to: \"{$surveyTitle}\"",
+        'published'       => "Survey \"{$surveyTitle}\" has been published and users have been notified.",
         'auto_closed'     => "Survey \"{$surveyTitle}\" has expired and was automatically closed.",
         'user_registered' => $surveyTitle, // reused field carries the message for registration
         default           => "Survey activity on: \"{$surveyTitle}\"",
@@ -85,7 +86,6 @@ if (basename(__FILE__) === basename($_SERVER['SCRIPT_FILENAME'] ?? '')) {
     $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
     if ($action === 'fetch') {
-        // Allow caller to override the limit: ?action=fetch&limit=50
         $limit = max(1, min(200, (int) ($_GET['limit'] ?? 20)));
         ob_end_clean();
         echo json_encode(notif_fetch($conn, $limit));
@@ -104,6 +104,7 @@ if (basename(__FILE__) === basename($_SERVER['SCRIPT_FILENAME'] ?? '')) {
         echo json_encode(['success' => true]);
         exit;
     }
+
     if ($action === 'mark_one') {
         $id = (int) ($_GET['id'] ?? 0);
         if ($id > 0) {
@@ -116,6 +117,7 @@ if (basename(__FILE__) === basename($_SERVER['SCRIPT_FILENAME'] ?? '')) {
         echo json_encode(['success' => true]);
         exit;
     }
+
     ob_end_clean();
     echo json_encode(['error' => 'Unknown action']);
     exit;
