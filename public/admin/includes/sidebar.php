@@ -29,7 +29,8 @@
   .sidebar-nav .nav-heading {
     font-size: 11px;
     text-transform: uppercase;
-    color: #7a776f; /* Grayish Ink */
+    color: #7a776f;
+    /* Grayish Ink */
     font-weight: 700;
     margin: 15px 0 10px 15px;
     letter-spacing: 0.1em;
@@ -46,8 +47,10 @@
     align-items: center;
     font-size: 14px;
     font-weight: 600;
-    color: #000000; /* Solid Black */
-    transition: all 0.3s ease; /* Smooth transition */
+    color: #000000;
+    /* Solid Black */
+    transition: all 0.3s ease;
+    /* Smooth transition */
     background: transparent;
     padding: 12px 15px;
     border-radius: var(--radius);
@@ -58,7 +61,8 @@
   .sidebar-nav .nav-link.collapsed i {
     font-size: 18px;
     margin-right: 12px;
-    color: #000000; /* Black icons */
+    color: #000000;
+    /* Black icons */
     transition: all 0.3s ease;
   }
 
@@ -68,7 +72,8 @@
     align-items: center;
     font-size: 14px;
     font-weight: 600;
-    color: var(--gold); /* Gold font */
+    color: var(--gold);
+    /* Gold font */
     background: var(--paper-3);
     padding: 12px 15px;
     border-radius: var(--radius);
@@ -80,7 +85,8 @@
   .sidebar-nav .nav-link:not(.collapsed) i {
     font-size: 18px;
     margin-right: 12px;
-    color: var(--gold); /* Gold icons */
+    color: var(--gold);
+    /* Gold icons */
   }
 
   /* HOVER STATE: Also transitions to Gold */
@@ -99,10 +105,35 @@
     min-height: 100vh;
   }
 
+  .main-wrapper {
+    margin-left: 260px;
+    transition: all 0.3s;
+  }
+
+  body.sidebar-hidden .sidebar {
+    left: -260px !important;
+  }
+
+  body.sidebar-hidden #main {
+    margin-left: 0 !important;
+  }
+
+  body.sidebar-hidden .main-wrapper {
+    margin-left: 0 !important;
+  }
+
   @media (max-width: 1199px) {
-    .sidebar { left: -260px; }
-    #main { margin-left: 0; }
-    .sidebar-show .sidebar { left: 0; }
+    .sidebar {
+      left: 0;
+    }
+
+    #main {
+      margin-left: 260px;
+    }
+
+    .main-wrapper {
+      margin-left: 260px;
+    }
   }
 </style>
 

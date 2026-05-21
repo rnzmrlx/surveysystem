@@ -5,7 +5,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── INSERT a user notification ────────────────────────────────────────────
-function user_notif_insert($conn, $userId, $type, $message, $surveyId = null, $surveyTitle = null) {
+function user_notif_insert($conn, $userId, $type, $message, $surveyId = null, $surveyTitle = null)
+{
     // Prevent duplicate notifications of the same type for same survey/user
     if ($surveyId) {
         $check = $conn->prepare("
@@ -20,17 +21,18 @@ function user_notif_insert($conn, $userId, $type, $message, $surveyId = null, $s
         if ($exists) return; // already notified
     }
 
-$stmt = $conn->prepare("
+    $stmt = $conn->prepare("
     INSERT INTO user_notifications (user_id, type, message, survey_id, survey_title)
     VALUES (?, ?, ?, ?, ?)
 ");
-$stmt->bind_param('issis', $userId, $type, $message, $surveyId, $surveyTitle);
-$stmt->execute();
-$stmt->close();
+    $stmt->bind_param('issis', $userId, $type, $message, $surveyId, $surveyTitle);
+    $stmt->execute();
+    $stmt->close();
 }
 
 // ── NOTIFY all users about a new published survey ─────────────────────────
-function user_notif_survey_published($conn, $surveyId, $surveyTitle) {
+function user_notif_survey_published($conn, $surveyId, $surveyTitle)
+{
     $result = $conn->query("SELECT id FROM users WHERE role = 'user'");
     while ($row = $result->fetch_assoc()) {
         $msg = "A new survey is available: \"{$surveyTitle}\". Take it now!";
@@ -39,7 +41,8 @@ function user_notif_survey_published($conn, $surveyId, $surveyTitle) {
 }
 
 // ── NOTIFY all users who responded that a survey is now closed ────────────
-function user_notif_survey_closed($conn, $surveyId, $surveyTitle) {
+function user_notif_survey_closed($conn, $surveyId, $surveyTitle)
+{
     $stmt = $conn->prepare("
         SELECT DISTINCT user_id FROM responses WHERE survey_id = ?
     ");
@@ -55,13 +58,15 @@ function user_notif_survey_closed($conn, $surveyId, $surveyTitle) {
 }
 
 // ── NOTIFY a user their response was recorded ─────────────────────────────
-function user_notif_response_recorded($conn, $userId, $surveyId, $surveyTitle) {
+function user_notif_response_recorded($conn, $userId, $surveyId, $surveyTitle)
+{
     $msg = "Your response to \"{$surveyTitle}\" has been successfully recorded. Thank you!";
     user_notif_insert($conn, $userId, 'response_recorded', $msg, $surveyId, $surveyTitle);
 }
 
 // ── FETCH notifications for the logged-in user ────────────────────────────
-function user_notif_fetch($conn, $userId, $limit = 20) {
+function user_notif_fetch($conn, $userId, $limit = 20)
+{
     $stmt = $conn->prepare("
         SELECT id, type, message, survey_title, is_read, created_at
         FROM   user_notifications
@@ -86,7 +91,8 @@ function user_notif_fetch($conn, $userId, $limit = 20) {
 }
 
 // ── MARK all as read for the logged-in user ───────────────────────────────
-function user_notif_mark_read($conn, $userId) {
+function user_notif_mark_read($conn, $userId)
+{
     $stmt = $conn->prepare(
         "UPDATE user_notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0"
     );
@@ -111,10 +117,10 @@ if (basename(__FILE__) === basename($_SERVER['SCRIPT_FILENAME'] ?? '')) {
     include __DIR__ . '/../config/config.php';
     header('Content-Type: application/json');
 
-$userId = (int) ($_SESSION['authUser']['user_id'] ?? 0);
+    $userId = (int) ($_SESSION['authUser']['user_id'] ?? 0);
     $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
-  if ($action === 'fetch') {
+    if ($action === 'fetch') {
         ob_end_clean();
         echo json_encode(user_notif_fetch($conn, $userId));
         exit;

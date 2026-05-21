@@ -91,18 +91,24 @@
     background: var(--paper);
     min-height: 100vh;
   }
-body.sidebar-hidden .sidebar {
-  left: -260px;
-}
 
-body.sidebar-hidden .main-wrapper {
-  margin-left: 0;
-  width: 100%;
-}
+  body.sidebar-hidden .sidebar {
+    left: -260px;
+  }
 
-@media (max-width: 1199px) {
-    .sidebar { left: 0; }
-    #main { margin-left: 260px; }
+  body.sidebar-hidden .main-wrapper {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+
+  @media (max-width: 1199px) {
+    .sidebar {
+      left: 0;
+    }
+
+    #main {
+      margin-left: 260px;
+    }
   }
 </style>
 
@@ -110,10 +116,10 @@ body.sidebar-hidden .main-wrapper {
 
   <ul class="sidebar-nav" id="sidebar-nav">
 
-   <li class="nav-heading">Main</li>
+    <li class="nav-heading">Main</li>
 
     <li class="nav-item">
-      <a class="nav-link <?= ($page == 'index.php') ? '' : 'collapsed' ?>" href="index.php">
+      <a class="nav-link <?= ($page == 'index.php') ? '' : 'collapsed' ?>" href="/surveysystem/public/user/index.php">
         <i class="bi bi-grid"></i>
         <span>Dashboard</span>
       </a>
@@ -122,14 +128,14 @@ body.sidebar-hidden .main-wrapper {
     <li class="nav-heading">Activity</li>
 
     <li class="nav-item">
-      <a class="nav-link <?= ($page == 'mysurvey.php') ? '' : 'collapsed' ?>" href="mysurvey.php">
+      <a class="nav-link collapsed" href="/surveysystem/public/user/mysurvey.php">
         <i class="bi bi-clipboard-data"></i>
         <span>My Surveys</span>
       </a>
     </li>
 
     <li class="nav-item">
-      <a class="nav-link <?= ($page == 'results.php') ? '' : 'collapsed' ?>" href="results.php">
+      <a class="nav-link <?= ($page == 'results.php') ? '' : 'collapsed' ?>" href="/surveysystem/public/user/results.php">
         <i class="bi bi-bar-chart"></i>
         <span>My Results</span>
       </a>

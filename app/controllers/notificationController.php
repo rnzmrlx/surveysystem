@@ -5,7 +5,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── INSERT a notification (called internally by other controllers) ─────────
-function notif_insert($conn, $type, $surveyTitle, $surveyId = null, $userId = null) {
+function notif_insert($conn, $type, $surveyTitle, $surveyId = null, $userId = null)
+{
     $message = match ($type) {
         'accessed'        => "Someone accessed the survey: \"{$surveyTitle}\"",
         'answered'        => "Someone submitted a response to: \"{$surveyTitle}\"",
@@ -24,7 +25,8 @@ function notif_insert($conn, $type, $surveyTitle, $surveyId = null, $userId = nu
 }
 
 // ── FETCH recent notifications (with optional limit) ─────────────────────
-function notif_fetch($conn, $limit = 20) {
+function notif_fetch($conn, $limit = 20)
+{
     $stmt = $conn->prepare("
         SELECT id, type, message, survey_title, is_read, created_at
         FROM   notifications
@@ -44,7 +46,8 @@ function notif_fetch($conn, $limit = 20) {
 }
 
 // ── FETCH ALL notifications (no limit — for history page) ─────────────────
-function notif_fetch_all($conn) {
+function notif_fetch_all($conn)
+{
     $stmt = $conn->prepare("
         SELECT id, type, message, survey_title, is_read, created_at
         FROM   notifications
@@ -58,7 +61,8 @@ function notif_fetch_all($conn) {
 }
 
 // ── MARK all as read ──────────────────────────────────────────────────────
-function notif_mark_read($conn) {
+function notif_mark_read($conn)
+{
     $conn->query("UPDATE notifications SET is_read = 1 WHERE is_read = 0");
 }
 
@@ -100,7 +104,18 @@ if (basename(__FILE__) === basename($_SERVER['SCRIPT_FILENAME'] ?? '')) {
         echo json_encode(['success' => true]);
         exit;
     }
-
+    if ($action === 'mark_one') {
+        $id = (int) ($_GET['id'] ?? 0);
+        if ($id > 0) {
+            $stmt = $conn->prepare("UPDATE notifications SET is_read = 1 WHERE id = ?");
+            $stmt->bind_param('i', $id);
+            $stmt->execute();
+            $stmt->close();
+        }
+        ob_end_clean();
+        echo json_encode(['success' => true]);
+        exit;
+    }
     ob_end_clean();
     echo json_encode(['error' => 'Unknown action']);
     exit;

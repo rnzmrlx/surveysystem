@@ -6,25 +6,24 @@ $userRole     = htmlspecialchars($user['role'] ?? 'User');
 
 $profileUrl = '/surveysystem/public/user/profile.php';
 
-// ── Use absolute URL — works from any page depth ──
-$_topbarAvatar = '/surveysystem/assets/img/profile-img.jpg'; // default
+$_topbarAvatar = '/surveysystem/assets/img/profile-img.jpg';
 
 if (!empty($user['avatar'])) {
-    $_topbarAvatar = '/surveysystem/' . htmlspecialchars($user['avatar']);
+  $_topbarAvatar = '/surveysystem/' . htmlspecialchars($user['avatar']);
 } elseif (!empty($user['user_id'])) {
-    if (!isset($conn)) {
-        include_once dirname(__DIR__, 3) . '/app/config/config.php';
-    }
-    $stmt = $conn->prepare("SELECT avatar FROM users WHERE id = ? LIMIT 1");
-    $stmt->bind_param('i', $user['user_id']);
-    $stmt->execute();
-    $stmt->bind_result($_dbAvatar);
-    $stmt->fetch();
-    $stmt->close();
-    if (!empty($_dbAvatar)) {
-        $_SESSION['authUser']['avatar'] = $_dbAvatar;
-        $_topbarAvatar = '/surveysystem/' . htmlspecialchars($_dbAvatar);
-    }
+  if (!isset($conn)) {
+    include_once dirname(__DIR__, 3) . '/app/config/config.php';
+  }
+  $stmt = $conn->prepare("SELECT avatar FROM users WHERE id = ? LIMIT 1");
+  $stmt->bind_param('i', $user['user_id']);
+  $stmt->execute();
+  $stmt->bind_result($_dbAvatar);
+  $stmt->fetch();
+  $stmt->close();
+  if (!empty($_dbAvatar)) {
+    $_SESSION['authUser']['avatar'] = $_dbAvatar;
+    $_topbarAvatar = '/surveysystem/' . htmlspecialchars($_dbAvatar);
+  }
 }
 ?>
 
@@ -41,6 +40,17 @@ if (!empty($user['avatar'])) {
     z-index: 1030;
     display: flex;
     align-items: center;
+    transition: all 0.3s;
+  }
+
+  body.sidebar-hidden .header {
+    padding-left: 20px;
+  }
+
+  @media (max-width: 1199px) {
+    .header {
+      padding-left: 20px;
+    }
   }
 
   .header .logo {
@@ -63,7 +73,7 @@ if (!empty($user['avatar'])) {
   }
 
   .toggle-sidebar-btn {
-    font-size: 22px;
+    font-size: 30px;
     cursor: pointer;
     color: var(--ink);
     margin-left: 16px;
@@ -74,6 +84,7 @@ if (!empty($user['avatar'])) {
     display: flex;
     align-items: center;
     margin-left: auto;
+    margin-right: 2.75rem;
     list-style: none;
     padding: 0;
     margin-bottom: 0;
@@ -89,19 +100,29 @@ if (!empty($user['avatar'])) {
     display: flex;
     align-items: center;
     text-decoration: none;
+    cursor: pointer;
+  }
+
+  .header-nav .nav-icon:hover {
+    color: #000;
   }
 
   .header-nav .badge-number {
-    background: transparent !important;
-    color: #000 !important;
-    font-size: 11px;
+    background: var(--gold) !important;
+    color: #fff !important;
+    font-size: 10px;
     font-weight: 800;
     position: absolute;
     top: -2px;
     right: 2px;
+    border-radius: 50%;
+    width: 17px;
+    height: 17px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
   }
-
-  .header-nav .nav-icon:hover { color: #000; }
 
   .header-nav .nav-profile {
     display: flex;
@@ -126,14 +147,13 @@ if (!empty($user['avatar'])) {
     color: var(--ink-2);
   }
 
-  /* Fix: dropdown must escape the fixed header stacking context */
-.header-nav .dropdown-menu {
+  .header-nav .dropdown-menu {
     background: #fff !important;
     border: 1.5px solid var(--paper-3) !important;
-    box-shadow: 0 8px 24px rgba(15,14,13,0.12) !important;
+    box-shadow: 0 8px 24px rgba(15, 14, 13, 0.12) !important;
     border-radius: var(--radius) !important;
     padding: 6px 0 !important;
-    min-width: 200px;
+    min-width: 240px;
     z-index: 9999 !important;
   }
 
@@ -142,84 +162,214 @@ if (!empty($user['avatar'])) {
   }
 
   .header-nav .dropdown-header h6 {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--ink);
     margin: 0;
   }
 
   .header-nav .dropdown-header span {
-    font-size: 12px;
-    color: var(--ink-3);
-  }
-
-  .dropdown-item {
-    display: flex !important;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px !important;
-    font-size: 13.5px !important;
-    color: var(--ink-2) !important;
-    font-weight: 500;
-    background: none !important;
-    border: none;
-    width: 100%;
-    text-decoration: none;
-    transition: background 0.15s;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-  }
-
-  .dropdown-item:hover {
-    background: var(--paper) !important;
-    color: var(--gold) !important;
-  }
-.dropdown-menu.profile .dropdown-header {
-  text-align: center;
-  padding: 10px 15px;
+  font-size: 14px;   /* ← matches admin */
+  color: #6c757d;
 }
-
 .dropdown-menu.profile .dropdown-header h6 {
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 2px;
-  color: var(--ink);
+  font-size: 14px;
 }
 
 .dropdown-menu.profile .dropdown-header span {
   font-size: 12px;
-  color: #6c757d;
 }
-  .dropdown-divider { border-color: var(--paper-3) !important; }
+.dropdown-menu.profile .dropdown-header {
+  text-align: center;
+}
+.dropdown-item {
+  font-size: 13.5px !important;
+}
+.dropdown-item:hover {
+  background: var(--paper) !important;
+  color: var(--gold) !important;
+}
+  .dropdown-divider {
+    border-color: var(--paper-3) !important;
+  }
+
+  /* ── Notification dropdown (manual, no Bootstrap) ── */
+  #notifWrapper {
+    position: relative;
+  }
+
+  .notif-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 360px;
+    max-height: 520px;
+    display: none;
+    flex-direction: column;
+    background: #fff;
+    border: 1.5px solid var(--paper-3);
+    box-shadow: 0 8px 24px rgba(15, 14, 13, 0.12);
+    border-radius: var(--radius, 8px);
+    z-index: 9999;
+    overflow: hidden;
+  }
+
+  .notif-dropdown.show {
+    display: flex;
+  }
+
+  .notif-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1.5px solid var(--paper-3);
+    flex-shrink: 0;
+  }
+
+  .notif-header-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .btn-mark-all {
+    background: var(--gold) !important;
+    color: #fff !important;
+    border: none;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: 'DM Sans', sans-serif;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .btn-mark-all:hover {
+    background: var(--gold-dark) !important;
+    color: #fff !important;
+  }
+
+  .notif-list {
+    overflow-y: auto;
+    flex: 1;
+    scrollbar-width: thin;
+    scrollbar-color: var(--paper-3) transparent;
+  }
+
+  .notif-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--paper-2);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .notif-item:hover {
+    background: var(--paper);
+  }
+
+  .notif-item.unread {
+    background: var(--gold-light);
+  }
+
+  .notif-item.unread:hover {
+    background: #f0e0b0;
+  }
+
+  .notif-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .notif-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .notif-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+
+  .notif-item.read .notif-title {
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+
+  .notif-msg {
+    font-size: 12px;
+    color: var(--ink-2);
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .notif-time {
+    font-size: 11px;
+    color: var(--ink-3);
+    margin-top: 3px;
+  }
+
+  .notif-footer {
+    border-top: 1.5px solid var(--paper-3);
+    padding: 10px 16px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .notif-footer a {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .notif-footer a:hover {
+    color: var(--gold-dark);
+  }
 </style>
 
-<header class="header">
+<header class="header" style="padding: 0 20px;">
+<a href="index.php" class="logo">
+    <img src="/surveysystem/public/user/assets/img/logo.png" alt="Logo" style="height: 32px; width: auto;">
+    <span class="d-none d-lg-block">Quick<em>Query</em></span>
+</a>
+  <i class="bi bi-list toggle-sidebar-btn" id="toggleSidebar" style="margin-left: auto;"></i>
 
-  <a href="index.php" class="logo">
-    <span>Quick<em>Query</em></span>
-  </a>
-  <i class="bi bi-list toggle-sidebar-btn" id="toggleSidebar"></i>
+  <ul class="header-nav" style="margin-right: -1rem;">
 
-  <ul class="header-nav">
-
-<!-- Notifications -->
+    <!-- ── Notifications ── -->
     <li class="nav-item dropdown">
       <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown" id="userNotifBell">
         <i class="bi bi-bell"></i>
-        <span class="badge-number" id="userNotifCount" style="display:none;"></span>
+        <span class="badge badge-number" id="userNotifCount" style="display:none;"></span>
       </a>
 
-      <ul class="dropdown-menu dropdown-menu-end notifications"
-          style="min-width:340px; max-height:420px; overflow-y:auto;">
+      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow notifications"
+        style="min-width:340px; max-height:420px; overflow-y:auto;">
 
         <li class="dropdown-header d-flex justify-content-between align-items-center px-3 py-2">
           <span id="userNotifHeader" style="font-weight:600;">Notifications</span>
           <a href="#" id="userMarkAllRead"
-             class="badge rounded-pill bg-primary p-2 ms-2"
-             style="font-size:11px; text-decoration:none;">Mark all read</a>
+            style="font-size:11px; text-decoration:none; background:var(--gold); color:#fff;
+                    padding:3px 10px; border-radius:20px; font-weight:600;">
+            Mark all read
+          </a>
         </li>
 
-        <li><hr class="dropdown-divider m-0"></li>
+        <li>
+          <hr class="dropdown-divider m-0">
+        </li>
 
         <div id="userNotifList">
           <li class="text-center text-muted py-3" style="font-size:13px; list-style:none;">
@@ -227,129 +377,38 @@ if (!empty($user['avatar'])) {
           </li>
         </div>
 
-        <li><hr class="dropdown-divider m-0"></li>
-        <li class="dropdown-footer text-center py-2">
-          <a href="notifications.php" style="font-size:13px;">Show all notifications</a>
+        <li>
+          <hr class="dropdown-divider m-0">
         </li>
-
+        <li class="dropdown-footer text-center py-2">
+          <a href="notifications.php" style="font-size:13px; color:var(--ink-3); text-decoration:underline;">Show all notifications</a>
+        </li>
       </ul>
     </li>
 
-<script>
-(function () {
-  const ENDPOINT = '/surveysystem/app/controllers/userNotificationController.php';
-
-  const icons = {
-    survey_published:  'bi-megaphone text-primary',
-    survey_closed:     'bi-lock text-danger',
-    response_recorded: 'bi-check2-circle text-success'
-  };
-
-  function timeAgo(dateStr) {
-    const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
-    if (diff <    60) return diff + 's ago';
-    if (diff <  3600) return Math.floor(diff / 60)   + 'm ago';
-    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
-    return Math.floor(diff / 86400) + 'd ago';
-  }
-
-  function loadNotifications() {
-    fetch(ENDPOINT + '?action=fetch')
-      .then(r => r.json())
-      .then(data => {
-
-        const badge = document.getElementById('userNotifCount');
-        if (data.unread > 0) {
-          badge.textContent = data.unread > 99 ? '99+' : data.unread;
-          badge.style.display = 'block';
-        } else {
-          badge.style.display = 'none';
-        }
-
-        document.getElementById('userNotifHeader').textContent =
-          data.unread > 0
-            ? `You have ${data.unread} new notification${data.unread > 1 ? 's' : ''}`
-            : 'Notifications';
-
-        const list = document.getElementById('userNotifList');
-        if (!data.notifications || !data.notifications.length) {
-          list.innerHTML = `
-            <li style="list-style:none; text-align:center;
-                        padding:1.5rem; font-size:13px; color:#999;">
-              No notifications yet
-            </li>`;
-          return;
-        }
-
-        list.innerHTML = data.notifications.map(n => `
-          <li class="notification-item d-flex align-items-start px-3 py-2
-                     ${n.is_read == 0 ? 'bg-light' : ''}"
-              style="list-style:none; gap:.75rem;">
-            <i class="bi ${icons[n.type] ?? 'bi-bell text-secondary'}"
-               style="font-size:20px; margin-top:2px; flex-shrink:0;"></i>
-            <div style="min-width:0;">
-              <div style="font-size:13px; font-weight:600; margin-bottom:2px;">
-                ${n.type === 'survey_published'  ? '📋 New Survey Available' :
-                  n.type === 'survey_closed'     ? '🔒 Survey Closed'        :
-                  n.type === 'response_recorded' ? '✅ Response Recorded'    : '🔔 Notification'}
-              </div>
-              <div style="font-size:12px; color:#555; white-space:normal; word-break:break-word;">
-                ${n.message}
-              </div>
-              <div style="font-size:11px; color:#aaa; margin-top:3px;">
-                ${timeAgo(n.created_at)}
-              </div>
-            </div>
-          </li>
-          <li style="list-style:none;"><hr class="dropdown-divider m-0"></li>
-        `).join('');
-      })
-      .catch(() => {
-        document.getElementById('userNotifList').innerHTML = `
-          <li style="list-style:none; text-align:center;
-                      padding:1rem; font-size:12px; color:#c00;">
-            Could not load notifications.
-          </li>`;
-      });
-  }
-
-  document.getElementById('userNotifBell').addEventListener('click', function () {
-    fetch(ENDPOINT + '?action=mark_read', { method: 'POST' })
-      .then(() => setTimeout(loadNotifications, 250));
-  });
-
-  document.getElementById('userMarkAllRead').addEventListener('click', function (e) {
-    e.preventDefault();
-    e.stopPropagation();
-    fetch(ENDPOINT + '?action=mark_read', { method: 'POST' })
-      .then(() => loadNotifications());
-  });
-
-  loadNotifications();
-  setInterval(loadNotifications, 30000);
-
-})();
-</script>
-    <!-- Profile -->
+    <!-- ── Profile ── -->
     <li class="nav-item dropdown pe-3">
       <a class="nav-link nav-profile dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-        <!-- ── Dynamic avatar with DB fallback ── -->
         <img id="topbarAvatarImg" src="<?= $_topbarAvatar ?>" alt="Profile">
-<span><?= $userName ?></span>
+        <span><?= $userName ?></span>
       </a>
-<ul class="dropdown-menu dropdown-menu-end profile">
+      <ul class="dropdown-menu dropdown-menu-end profile">
         <li class="dropdown-header">
           <h6><?= htmlspecialchars($_SESSION['authUser']['username']) ?></h6>
-  <span><?= htmlspecialchars($_SESSION['authUser']['fullName']) ?> · User</span>
-</li>
-        <li><hr class="dropdown-divider"></li>
+          <span><?= htmlspecialchars($_SESSION['authUser']['fullName']) ?> · User</span>
+        </li>
+        <li>
+          <hr class="dropdown-divider">
+        </li>
         <li>
           <a class="dropdown-item" href="<?= $profileUrl ?>">
             <i class="bi bi-person"></i>
             My Profile
           </a>
         </li>
-        <li><hr class="dropdown-divider"></li>
+        <li>
+          <hr class="dropdown-divider">
+        </li>
         <li>
           <form action="../../app/controllers/userController.php" method="post">
             <button type="submit" name="logoutButton" class="dropdown-item">
@@ -364,3 +423,144 @@ if (!empty($user['avatar'])) {
   </ul>
 
 </header>
+
+<script>
+
+  (function() {
+    const ENDPOINT = '/surveysystem/app/controllers/userNotificationController.php';
+
+    const icons = {
+      survey_published: 'bi-megaphone',
+      closing_soon: 'bi-clock',
+      survey_closed: 'bi-lock',
+      response_recorded: 'bi-check2-circle',
+    };
+
+    function timeAgo(dateStr) {
+      const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+      if (diff < 60) return diff + 's ago';
+      if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+      if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+      return Math.floor(diff / 86400) + 'd ago';
+    }
+
+    function notifLabel(type) {
+      switch (type) {
+        case 'survey_published':
+          return '📋 New Survey Available';
+        case 'closing_soon':
+          return '⏰ Closing Soon';
+        case 'survey_closed':
+          return '🔒 Survey Closed';
+        case 'response_recorded':
+          return '✅ Response Recorded';
+        default:
+          return '🔔 Notification';
+      }
+    }
+
+    function renderItems(notifications) {
+      if (!notifications || !notifications.length) {
+        return `<li style="list-style:none; text-align:center;
+                          padding:1.5rem; font-size:13px; color:#999;">
+                No notifications yet
+              </li>`;
+      }
+
+      return notifications.map(n => `
+      <li class="notification-item d-flex align-items-start px-3 py-2
+                 ${n.is_read == 0 ? 'unread' : ''}"
+          style="list-style:none; gap:.75rem; cursor:pointer;"
+          data-id="${n.id}">
+        <i class="bi ${icons[n.type] ?? 'bi-bell'}"
+           style="font-size:20px; margin-top:2px; flex-shrink:0; color:var(--gold);"></i>
+        <div style="min-width:0;">
+          <div class="notif-title" style="font-size:13px; margin-bottom:2px;
+               font-weight:${n.is_read == 0 ? '700' : '400'};">
+            ${notifLabel(n.type)}
+          </div>
+          <div class="notif-msg" style="font-size:12px; color:#555; white-space:normal;
+               word-break:break-word; font-weight:${n.is_read == 0 ? '600' : '400'};">
+            ${n.message}
+          </div>
+          <div style="font-size:11px; color:#aaa; margin-top:3px;">
+            ${timeAgo(n.created_at)}
+          </div>
+        </div>
+      </li>
+      <li style="list-style:none;"><hr class="dropdown-divider m-0"></li>
+    `).join('');
+    }
+
+    function loadNotifications() {
+      fetch(ENDPOINT + '?action=fetch')
+        .then(r => r.json())
+        .then(data => {
+          const badge = document.getElementById('userNotifCount');
+          if (data.unread > 0) {
+            badge.textContent = data.unread > 99 ? '99+' : data.unread;
+            badge.style.display = 'block';
+          } else {
+            badge.style.display = 'none';
+          }
+
+          document.getElementById('userNotifHeader').textContent =
+            data.unread > 0 ?
+            `You have ${data.unread} new notification${data.unread > 1 ? 's' : ''}` :
+            'Notifications';
+
+          const latest5 = (data.notifications ?? []).slice(0, 5);
+          document.getElementById('userNotifList').innerHTML = renderItems(latest5);
+
+          document.querySelectorAll('#userNotifList .notification-item').forEach(function(item) {
+            item.addEventListener('click', function() {
+              const id = this.dataset.id;
+              const title = this.querySelector('.notif-title');
+              const msg = this.querySelector('.notif-msg');
+              if (title) title.style.fontWeight = '400';
+              if (msg) msg.style.fontWeight = '400';
+              this.classList.remove('unread');
+              fetch(ENDPOINT + '?action=mark_one&id=' + id, {
+                  method: 'POST'
+                })
+                .then(() => loadNotifications());
+            });
+          });
+        })
+        .catch(() => {
+          document.getElementById('userNotifList').innerHTML = `
+          <li style="list-style:none; text-align:center;
+                      padding:1rem; font-size:12px; color:#c00;">
+            Could not load notifications.
+          </li>`;
+        });
+    }
+
+    document.getElementById('userNotifBell').addEventListener('click', function() {
+      loadNotifications();
+    });
+
+    document.getElementById('userMarkAllRead').addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      document.querySelectorAll('#userNotifList .notification-item').forEach(function(item) {
+        item.classList.remove('unread');
+        const title = item.querySelector('.notif-title');
+        const msg = item.querySelector('.notif-msg');
+        if (title) title.style.fontWeight = '400';
+        if (msg) msg.style.fontWeight = '400';
+      });
+      document.getElementById('userNotifCount').style.display = 'none';
+      document.getElementById('userNotifHeader').textContent = 'Notifications';
+
+      fetch(ENDPOINT + '?action=mark_read', {
+          method: 'POST'
+        })
+        .then(() => loadNotifications());
+    });
+
+    loadNotifications();
+    setInterval(loadNotifications, 30000);
+  })();
+</script>

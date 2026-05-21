@@ -8,7 +8,7 @@ include('../../app/config/config.php');
 // Auto-close expired surveys
 $today = date('Y-m-d');
 $now = date('Y-m-d H:i:s');
-mysqli_query($conn, "UPDATE surveys SET status = 'closed' WHERE status = 'published' AND end_date IS NOT NULL AND end_date < '$now'");// Fetch all surveys with response count
+mysqli_query($conn, "UPDATE surveys SET status = 'closed' WHERE status = 'published' AND end_date IS NOT NULL AND end_date < '$now'"); // Fetch all surveys with response count
 $sql = "SELECT s.id, s.title, s.description, s.status, s.created_at, s.category_id,
                COUNT(DISTINCT r.user_id) as response_count
         FROM surveys s
@@ -321,7 +321,7 @@ $totalStudents = (int)mysqli_fetch_assoc($usersRes)['cnt'];
   }
 
   /* ── Table ── */
-.table-wrap {
+  .table-wrap {
     background: #fff;
     border: 1.5px solid var(--paper-3);
     border-radius: var(--radius);
@@ -329,13 +329,13 @@ $totalStudents = (int)mysqli_fetch_assoc($usersRes)['cnt'];
     box-shadow: var(--shadow);
   }
 
-.table-scroll {
+  .table-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     border-radius: var(--radius);
   }
 
-table {
+  table {
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
@@ -377,7 +377,7 @@ table {
     vertical-align: middle;
   }
 
-th.col-actions,
+  th.col-actions,
   td.col-actions {
     white-space: nowrap;
   }
@@ -1199,26 +1199,63 @@ th.col-actions,
   }
 
   /* ── Responsive ── */
-@media (max-width: 900px) {
+  @media (max-width: 900px) {
     .main-wrapper {
       padding: 1.5rem 1.25rem 3rem;
     }
+
     .stat-strip {
       grid-template-columns: repeat(2, 1fr);
     }
   }
 
   @media (max-width: 600px) {
-    .sm-row { grid-template-columns: 1fr; }
-    .sm-steps { padding: 1rem 1rem 0; }
-    .sm-panel { padding: 1.25rem 1rem 1.5rem; }
-    .sm-step__label { display: none; }
-    .sm-box { max-height: 95vh; }
-    .sm-toast { bottom: 1rem; right: 1rem; left: 1rem; }
-    .stat-strip { grid-template-columns: 1fr 1fr; }
-    header { flex-direction: column; align-items: flex-start; }
-    .toolbar { flex-direction: column; align-items: stretch; }
-    .search-wrap, .search-wrap input, .filter-select, .btn-gold { width: 100%; }
+    .sm-row {
+      grid-template-columns: 1fr;
+    }
+
+    .sm-steps {
+      padding: 1rem 1rem 0;
+    }
+
+    .sm-panel {
+      padding: 1.25rem 1rem 1.5rem;
+    }
+
+    .sm-step__label {
+      display: none;
+    }
+
+    .sm-box {
+      max-height: 95vh;
+    }
+
+    .sm-toast {
+      bottom: 1rem;
+      right: 1rem;
+      left: 1rem;
+    }
+
+    .stat-strip {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .toolbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .search-wrap,
+    .search-wrap input,
+    .filter-select,
+    .btn-gold {
+      width: 100%;
+    }
   }
 </style>
 
@@ -1233,9 +1270,12 @@ th.col-actions,
     <span class="current-page">Survey Management</span>
   </div>
 
-  <header>
+<header>
+  <div>
     <h1>Survey <em>Management</em></h1>
-    <div class="toolbar">
+    <p style="font-size:13.5px;color:var(--ink-3);margin-top:6px;">Create, manage, and monitor all your surveys in one place.</p>
+  </div>
+  <div class="toolbar">
       <div class="search-wrap">
         <svg viewBox="0 0 24 24">
           <circle cx="11" cy="11" r="8" />
@@ -1333,40 +1373,38 @@ th.col-actions,
                 </td>
                 <td class="col-actions">
                   <div class="action-btns">
-                    <a href="survey_questions.php?id=<?= (int)$s['id'] ?>&action=view" class="action-btn">
-                      <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2">
+                    <button class="action-btn" onclick="openViewModal(<?= (int)$s['id'] ?>)"> <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                         <circle cx="12" cy="12" r="3" />
                       </svg>
                       View
-                    </a>
-                    <a href="survey_questions.php?id=<?= (int)$s['id'] ?>&action=edit" class="action-btn">
-                      <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                      </svg>
-                      Edit
-                    </a>
-                    <?php if ($s['status'] === 'pending' || $s['status'] === 'closed'): ?>
-                    <button class="action-btn" onclick="changeSurveyStatus(<?= (int)$s['id'] ?>, 'publish')">
-                      <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2">
-                        <polyline points="22 2 15 22 11 13 2 9 22 2"/>
-                      </svg>
-                      Publish
-                    </button>
-                    <?php elseif ($s['status'] === 'published'): ?>
-                    <button class="action-btn danger" onclick="changeSurveyStatus(<?= (int)$s['id'] ?>, 'close')">
-                      Close
-                    </button>
-                    <?php endif; ?>
-                    <button class="action-btn danger" onclick="confirmDelete(this, <?= (int)$s['id'] ?>)">
-                      <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2">
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
-                        <path d="M10 11v6M14 11v6" />
-                      </svg>
-                      Delete
-                    </button>
+                      </a>
+                      <button class="action-btn" onclick="openEditModal(<?= (int)$s['id'] ?>)"> <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2">
+                          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                        Edit
+                        </a>
+                        <?php if ($s['status'] === 'pending' || $s['status'] === 'closed'): ?>
+                          <button class="action-btn" onclick="changeSurveyStatus(<?= (int)$s['id'] ?>, 'publish')">
+                            <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2">
+                              <polyline points="22 2 15 22 11 13 2 9 22 2" />
+                            </svg>
+                            Publish
+                          </button>
+                        <?php elseif ($s['status'] === 'published'): ?>
+                          <button class="action-btn danger" onclick="changeSurveyStatus(<?= (int)$s['id'] ?>, 'close')">
+                            Close
+                          </button>
+                        <?php endif; ?>
+                        <button class="action-btn danger" onclick="confirmDelete(this, <?= (int)$s['id'] ?>)">
+                          <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+                            <path d="M10 11v6M14 11v6" />
+                          </svg>
+                          Delete
+                        </button>
                   </div>
                 </td>
               </tr>
@@ -1444,16 +1482,16 @@ th.col-actions,
             </select>
           </div>
         </div>
-<div class="sm-row">
+        <div class="sm-row">
           <div class="sm-field">
-            <label>Start Date</label>
-            <input type="date" id="smStart">
+<label>Start Date <span class="req">*</span></label>       
+     <input type="date" id="smStart">
           </div>
           <div class="sm-field">
-            <label>Start Time</label>
+<label>Start Time <span class="req">*</span></label>
             <div style="display:flex;gap:6px;">
               <select id="smStartHour" style="flex:1;background:var(--paper-2);border:1.5px solid var(--paper-3);border-radius:var(--radius);padding:9px 8px;font-family:'DM Sans',sans-serif;font-size:13.5px;color:var(--ink);outline:none;">
-                <?php for($h=1;$h<=12;$h++) echo "<option value='".str_pad($h,2,'0',STR_PAD_LEFT)."'>".str_pad($h,2,'0',STR_PAD_LEFT)."</option>"; ?>
+                <?php for ($h = 1; $h <= 12; $h++) echo "<option value='" . str_pad($h, 2, '0', STR_PAD_LEFT) . "'>" . str_pad($h, 2, '0', STR_PAD_LEFT) . "</option>"; ?>
               </select>
               <select id="smStartMin" style="flex:1;background:var(--paper-2);border:1.5px solid var(--paper-3);border-radius:var(--radius);padding:9px 8px;font-family:'DM Sans',sans-serif;font-size:13.5px;color:var(--ink);outline:none;">
                 <option value="00">00</option>
@@ -1477,7 +1515,7 @@ th.col-actions,
             <label>End Time <span class="req">*</span></label>
             <div style="display:flex;gap:6px;">
               <select id="smEndHour" style="flex:1;background:var(--paper-2);border:1.5px solid var(--paper-3);border-radius:var(--radius);padding:9px 8px;font-family:'DM Sans',sans-serif;font-size:13.5px;color:var(--ink);outline:none;">
-                <?php for($h=1;$h<=12;$h++) echo "<option value='".str_pad($h,2,'0',STR_PAD_LEFT)."'>".str_pad($h,2,'0',STR_PAD_LEFT)."</option>"; ?>
+                <?php for ($h = 1; $h <= 12; $h++) echo "<option value='" . str_pad($h, 2, '0', STR_PAD_LEFT) . "'>" . str_pad($h, 2, '0', STR_PAD_LEFT) . "</option>"; ?>
               </select>
               <select id="smEndMin" style="flex:1;background:var(--paper-2);border:1.5px solid var(--paper-3);border-radius:var(--radius);padding:9px 8px;font-family:'DM Sans',sans-serif;font-size:13.5px;color:var(--ink);outline:none;">
                 <option value="00">00</option>
@@ -1576,571 +1614,1175 @@ th.col-actions,
      ══════════════════════════════════════════════════ -->
 <script>
   (function() {
-      'use strict';
+    'use strict';
 
-      /* ────────────────────────────────────────────────
-         1. TELEPORT  ← THE PRIMARY BUG FIX
-         Move #surveyModal and #smToast to be direct
-         children of <body>. AdminLTE / NiceAdmin apply
-         CSS transform to wrapper divs; any transformed
-         ancestor breaks position:fixed by creating a
-         new stacking context. On <body> (which has no
-         transform) position:fixed targets the viewport.
-      ──────────────────────────────────────────────── */
-      function teleport() {
-        ['surveyModal', 'smToast'].forEach(function(id) {
-          var el = document.getElementById(id);
-          if (el && el.parentNode !== document.body) {
-            document.body.appendChild(el);
-          }
-        });
-      }
-      /* Run early, on DOMContentLoaded, and on load — belt-and-suspenders */
-      teleport();
-      document.addEventListener('DOMContentLoaded', function() {
+    /* ────────────────────────────────────────────────
+       1. TELEPORT  ← THE PRIMARY BUG FIX
+       Move #surveyModal and #smToast to be direct
+       children of <body>. AdminLTE / NiceAdmin apply
+       CSS transform to wrapper divs; any transformed
+       ancestor breaks position:fixed by creating a
+       new stacking context. On <body> (which has no
+       transform) position:fixed targets the viewport.
+    ──────────────────────────────────────────────── */
+    function teleport() {
+      ['surveyModal', 'smToast'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el && el.parentNode !== document.body) {
+          document.body.appendChild(el);
+        }
+      });
+    }
+    /* Run early, on DOMContentLoaded, and on load — belt-and-suspenders */
     teleport();
-    visibleRows = getAllRows();
-    renderPage();
-});
-window.addEventListener('load', teleport);
-
-
-      /* ────────────────────────────────────────────────
-         2. MODAL STATE
-      ──────────────────────────────────────────────── */
-      var smQCount = 0;
-      var smToastTimer = null;
-
-
-      /* ────────────────────────────────────────────────
-         3. OPEN / CLOSE
-      ──────────────────────────────────────────────── */
-      window.smOpen = function() {
-        teleport(); /* ensure placement even if called before DOMContentLoaded */
-
-        var modal = document.getElementById('surveyModal');
-        modal.classList.add('sm-open');
-        document.body.classList.add('modal-open');
-
-        /* Reset */
-        document.getElementById('smTitle').value = '';
-        document.getElementById('smDesc').value = '';
-        document.getElementById('smStatus').value = 'published';
-        document.getElementById('smStart').value = '';
-        document.getElementById('smEnd').value = '';
-        document.getElementById('smQList').innerHTML = '';
-        document.getElementById('smErr1').classList.remove('sm-error--show');
-        document.getElementById('smErr2').classList.remove('sm-error--show');
-
-        smQCount = 0;
-        smSetStep(1);
-        smAddQuestion(); /* start with one blank question */
-
-        setTimeout(function() {
-          var t = document.getElementById('smTitle');
-          if (t) t.focus();
-        }, 60);
-      };
-
-      window.smClose = function() {
-    var prev = window.onbeforeunload;
-    window.onbeforeunload = null;
-    document.getElementById('surveyModal').classList.remove('sm-open');
-    document.body.classList.remove('modal-open');
-    window.onbeforeunload = prev;
-};
-
-      /* Backdrop click — close only when clicking the dark overlay, not the box */
-      document.addEventListener('click', function(e) {
-        var modal = document.getElementById('surveyModal');
-        if (modal && e.target === modal) smClose();
-      });
-
-      /* Escape key */
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') smClose();
-      });
-
-
-      /* ────────────────────────────────────────────────
-         4. STEP NAVIGATION
-      ──────────────────────────────────────────────── */
-      window.smSetStep = function(step) {
-        /* Panels */
-        for (var i = 1; i <= 3; i++) {
-          var p = document.getElementById('smStep' + i);
-          if (p) p.classList.toggle('sm-panel--active', i === step);
-        }
-        /* Dots */
-        for (var j = 1; j <= 3; j++) {
-          var d = document.getElementById('smDot' + j);
-          if (!d) continue;
-          d.classList.remove('sm-step--active', 'sm-step--done');
-          if (j === step) d.classList.add('sm-step--active');
-          if (j < step) d.classList.add('sm-step--done');
-        }
-        /* Lines */
-        var l1 = document.getElementById('smLine1');
-        var l2 = document.getElementById('smLine2');
-        if (l1) l1.classList.toggle('sm-step__line--done', step > 1);
-        if (l2) l2.classList.toggle('sm-step__line--done', step > 2);
-
-        /* Scroll box to top */
-        var box = document.querySelector('#surveyModal .sm-box');
-        if (box) box.scrollTop = 0;
-      };
-
-window.smGoStep2 = function() {
-        var err = document.getElementById('smErr1');
-        err.classList.remove('sm-error--show');
-        if (!document.getElementById('smTitle').value.trim()) {
-          err.textContent = 'Please enter a survey title.';
-          err.classList.add('sm-error--show');
-          document.getElementById('smTitle').focus();
-          return;
-        }
-        if (!document.getElementById('smEnd').value) {
-          err.textContent = 'Please set an end date for the survey.';
-          err.classList.add('sm-error--show');
-          document.getElementById('smEnd').focus();
-          return;
-        }
-        if (document.getElementById('smStart').value && document.getElementById('smEnd').value < document.getElementById('smStart').value) {
-          err.textContent = 'End date cannot be before start date.';
-          err.classList.add('sm-error--show');
-          document.getElementById('smEnd').focus();
-          return;
-        }
-        smSetStep(2);
-      };
-
-      window.smGoStep3 = function() {
-        var err = document.getElementById('smErr2');
-        err.classList.remove('sm-error--show');
-        if (document.querySelectorAll('.sm-qcard').length === 0) {
-          err.textContent = 'Add at least one question before continuing.';
-          err.classList.add('sm-error--show');
-          return;
-        }
-        smBuildReview();
-        smSetStep(3);
-      };
-
-
-      /* ────────────────────────────────────────────────
-         5. QUESTIONS
-      ──────────────────────────────────────────────── */
-      window.smAddQuestion = function() {
-        smQCount++;
-        var n = smQCount;
-        var card = document.createElement('div');
-        card.className = 'sm-qcard';
-        card.dataset.qid = n;
-        card.innerHTML =
-  '<div class="sm-qrow">' +
-  '<span class="sm-qnum">' + n + '</span>' +
-  '<div class="sm-qbody">' +
-  '<input type="text" class="sm-qtext" placeholder="Type your question here…" autocomplete="off">' +
-  '<div style="display:flex;gap:10px;align-items:center;margin-top:4px;">' +
-  '<select class="sm-qtype" onchange="smRenderOpts(this)">' +
-  '<option value="text">Short Answer</option>' +
-  '<option value="textarea">Long Answer</option>' +
-  '<option value="radio">Multiple Choice (single)</option>' +
-  '<option value="checkbox">Checkboxes (multiple)</option>' +
-  '<option value="scale">Rating Scale 1–5</option>' +
-  '</select>' +
-  '<label style="display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--ink-2);cursor:pointer;white-space:nowrap;">' +
-  '<input type="checkbox" class="sm-qrequired" checked style="accent-color:var(--teal);width:14px;height:14px;"> Required' +
-  '</label>' +
-  '</div>' +
-  '<div class="sm-opts-wrap"></div>' +
-  '</div>' +
-  '<button type="button" class="sm-qdel" onclick="smDeleteQuestion(this)" aria-label="Delete question">×</button>' +
-  '</div>';
-        document.getElementById('smQList').appendChild(card);
-        card.querySelector('.sm-qtext').focus();
-      };
-
-      window.smDeleteQuestion = function(btn) {
-        btn.closest('.sm-qcard').remove();
-        /* Re-number remaining */
-        document.querySelectorAll('#smQList .sm-qcard').forEach(function(c, i) {
-          var num = c.querySelector('.sm-qnum');
-          if (num) num.textContent = i + 1;
-        });
-      };
-
-      window.smRenderOpts = function(select) {
-        var type = select.value;
-        var wrap = select.closest('.sm-qbody').querySelector('.sm-opts-wrap');
-        wrap.innerHTML = '';
-
-        if (type === 'radio' || type === 'checkbox') {
-          var div = document.createElement('div');
-          div.className = 'sm-opts';
-          div.innerHTML =
-            '<div class="sm-opt-row"><input type="text" placeholder="Option 1"><button type="button" class="sm-opt-del" onclick="smDelOpt(this)">×</button></div>' +
-            '<div class="sm-opt-row"><input type="text" placeholder="Option 2"><button type="button" class="sm-opt-del" onclick="smDelOpt(this)">×</button></div>' +
-            '<button type="button" class="sm-btn-addopt" onclick="smAddOpt(this)">+ Add option</button>';
-          wrap.appendChild(div);
-        }
-
-        if (type === 'scale') {
-          wrap.innerHTML =
-            '<div style="display:flex;gap:6px;margin-top:6px;">' + [1, 2, 3, 4, 5].map(function(n) {
-              return '<div style="width:32px;height:32px;border-radius:8px;border:1.5px solid var(--paper-3);' +
-                'display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;' +
-                'background:#fff;color:var(--ink-3);">' + n + '</div>';
-            }).join('') +
-            '</div>' +
-            '<p style="font-size:12px;color:var(--ink-3);margin-top:6px;">Respondents choose a value from 1 to 5.</p>';
-        }
-      };
-
-      window.smAddOpt = function(btn) {
-        var opts = btn.closest('.sm-opts');
-        var count = opts.querySelectorAll('.sm-opt-row').length + 1;
-        var row = document.createElement('div');
-        row.className = 'sm-opt-row';
-        row.innerHTML = '<input type="text" placeholder="Option ' + count + '"><button type="button" class="sm-opt-del" onclick="smDelOpt(this)">×</button>';
-        opts.insertBefore(row, btn);
-      };
-
-      window.smDelOpt = function(btn) {
-        var opts = btn.closest('.sm-opts');
-        if (opts.querySelectorAll('.sm-opt-row').length > 1) {
-          btn.closest('.sm-opt-row').remove();
-        }
-      };
-
-
-      /* ────────────────────────────────────────────────
-         6. REVIEW BUILD
-      ──────────────────────────────────────────────── */
-      function smBuildReview() {
-        var title = document.getElementById('smTitle').value;
-        var desc = document.getElementById('smDesc').value;
-        var status = document.getElementById('smStatus').value;
-        var start = document.getElementById('smStart').value;
-        var end = document.getElementById('smEnd').value;
-
-        var meta = [(status.charAt(0).toUpperCase() + status.slice(1))];
-        if (start) meta.push('From ' + start);
-        if (end) meta.push('To ' + end);
-
-        var html =
-          '<div class="sm-review-card">' +
-          '<strong>' + esc(title) + '</strong>' +
-          '<p>' + esc(desc || '—') + '</p>' +
-          '<p style="font-size:12px;color:var(--ink-3);margin-top:6px;">' + meta.join(' · ') + '</p>' +
-          '</div>' +
-          '<div class="sm-review-qlabel">Questions (' + document.querySelectorAll('.sm-qcard').length + ')</div>';
-
-        document.querySelectorAll('.sm-qcard').forEach(function(card, i) {
-          var text = card.querySelector('.sm-qtext').value || '(untitled)';
-          var typeEl = card.querySelector('.sm-qtype');
-          var typeName = typeEl ? typeEl.options[typeEl.selectedIndex].text : '';
-          html +=
-            '<div class="sm-review-qcard">' +
-            '<div class="sm-review-qnum">' + (i + 1) + '</div>' +
-            '<div class="sm-review-qbody">' +
-            '<b>' + esc(text) + '</b>' +
-'<small>' + esc(typeName) + ' · ' + (card.querySelector('.sm-qrequired') && card.querySelector('.sm-qrequired').checked ? '✱ Required' : 'Optional') + '</small>' +            '</div>' +
-            '</div>';
-        });
-
-        document.getElementById('smReview').innerHTML = html;
-      }
-
-      function esc(str) {
-        return String(str)
-          .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-      }
-
-
-      /* ────────────────────────────────────────────────
-         7. SUBMIT / LAUNCH
-      ──────────────────────────────────────────────── */
-      window.smLaunch = function() {
-        var title = document.getElementById('smTitle').value.trim();
-        var desc = document.getElementById('smDesc').value.trim();
-        var status = document.getElementById('smStatus').value;
-
-        if (!title) {
-          smToastMsg('Title is required.', false);
-          smSetStep(1);
-          return;
-        }
-
-        var questions = [];
-        document.querySelectorAll('.sm-qcard').forEach(function(card) {
-          var text = card.querySelector('.sm-qtext').value.trim();
-          var typeEl = card.querySelector('.sm-qtype');
-          var type = typeEl ? typeEl.value : 'text';
-          if (!text) return;
-          var opts = [];
-          card.querySelectorAll('.sm-opt-row input').forEach(function(inp) {
-            if (inp.value.trim()) opts.push(inp.value.trim());
-          });
-          questions.push({
-  text: text,
-  type: type,
-  opts: opts,
-  required: card.querySelector('.sm-qrequired') ? card.querySelector('.sm-qrequired').checked : true  // ← add this
-});
-        });
-
-        if (questions.length === 0) {
-          smToastMsg('Add at least one question.', false);
-          smSetStep(2);
-          return;
-        }
-
-        var btn = document.getElementById('smLaunchBtn');
-        btn.disabled = true;
-        btn.textContent = 'Saving…';
-
-        var fd = new FormData();
-        fd.append('action', 'create');
-        fd.append('title', title);
-        fd.append('description', desc);
-        fd.append('status', status);
-function to24(h, m, ap) {
-          var hour = parseInt(h);
-          if (ap === 'AM' && hour === 12) hour = 0;
-          if (ap === 'PM' && hour !== 12) hour += 12;
-          return String(hour).padStart(2,'0') + ':' + m + ':00';
-        }
-        var startTime = to24(document.getElementById('smStartHour').value, document.getElementById('smStartMin').value, document.getElementById('smStartAmPm').value);
-        var endTime   = to24(document.getElementById('smEndHour').value,   document.getElementById('smEndMin').value,   document.getElementById('smEndAmPm').value);
-        fd.append('start_date', document.getElementById('smStart').value + ' ' + startTime);
-        fd.append('end_date',   document.getElementById('smEnd').value   + ' ' + endTime);
-        fd.append('questions', JSON.stringify(questions));
-
-fetch('/surveysystem/app/controllers/surveyController.php', {    method: 'POST',
-    body: fd
-})
-.then(function(res) {
-    return res.text().then(function(txt) {
-        console.log('RAW RESPONSE:', txt);
-        try {
-            return JSON.parse(txt);
-        } catch (e) {
-            throw new Error('Invalid JSON: ' + txt.slice(0, 200));
-        }
+    document.addEventListener('DOMContentLoaded', function() {
+      teleport();
+      visibleRows = getAllRows();
+      renderPage();
     });
-})
-.then(function(data) {
-    if (!data.success) throw new Error(data.message || 'Server returned failure.');
-    window.onbeforeunload = null;
-    smClose();
-    location.reload();
-})
-.catch(function(err) {
-    console.error(err);
-    smToastMsg(err.message || 'Server error. See console.', false);
-});
-  };
+    window.addEventListener('load', teleport);
 
 
-  /* ────────────────────────────────────────────────
-     8. TOAST
-  ──────────────────────────────────────────────── */
-  window.smToastMsg = function(msg, success) {
-    var t = document.getElementById('smToast');
-    document.getElementById('smToastMsg').textContent = msg;
-    t.className = 'sm-toast sm-toast--show ' + (success ? 'sm-toast--success' : 'sm-toast--error');
-    clearTimeout(smToastTimer);
-    smToastTimer = setTimeout(function() {
-      t.classList.remove('sm-toast--show');
-    }, 3500);
-  };
+    /* ────────────────────────────────────────────────
+       2. MODAL STATE
+    ──────────────────────────────────────────────── */
+    var smQCount = 0;
+    var smToastTimer = null;
 
 
-  /* ────────────────────────────────────────────────
-     9. DELETE CONFIRMATION
-  ──────────────────────────────────────────────── */
- window.confirmDelete = function(btn, surveyId) {
-    var row = btn.closest('tr');
-    var existing = row.querySelector('.delete-confirm-inline');
-    if (existing) { existing.remove(); return; }
+    /* ────────────────────────────────────────────────
+       3. OPEN / CLOSE
+    ──────────────────────────────────────────────── */
+    window.smOpen = function() {
+      teleport(); /* ensure placement even if called before DOMContentLoaded */
 
-    var bar = document.createElement('div');
-    bar.className = 'delete-confirm-inline';
-    bar.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 18px;background:var(--rose-lt);border-top:1px solid var(--paper-2);';
-    bar.innerHTML =
+      var modal = document.getElementById('surveyModal');
+      modal.classList.add('sm-open');
+      document.body.classList.add('modal-open');
+
+      /* Reset */
+      document.getElementById('smTitle').value = '';
+      document.getElementById('smDesc').value = '';
+      document.getElementById('smStatus').value = 'published';
+      document.getElementById('smStart').value = '';
+      document.getElementById('smEnd').value = '';
+      document.getElementById('smQList').innerHTML = '';
+      document.getElementById('smErr1').classList.remove('sm-error--show');
+      document.getElementById('smErr2').classList.remove('sm-error--show');
+
+      smQCount = 0;
+      smSetStep(1);
+      smAddQuestion(); /* start with one blank question */
+
+      setTimeout(function() {
+        var t = document.getElementById('smTitle');
+        if (t) t.focus();
+      }, 60);
+    };
+
+    window.smClose = function() {
+      var prev = window.onbeforeunload;
+      window.onbeforeunload = null;
+      document.getElementById('surveyModal').classList.remove('sm-open');
+      document.body.classList.remove('modal-open');
+      window.onbeforeunload = prev;
+    };
+
+    /* Backdrop click — close only when clicking the dark overlay, not the box */
+    document.addEventListener('click', function(e) {
+      var modal = document.getElementById('surveyModal');
+      if (modal && e.target === modal) smClose();
+    });
+
+    /* Escape key */
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') smClose();
+    });
+
+
+    /* ────────────────────────────────────────────────
+       4. STEP NAVIGATION
+    ──────────────────────────────────────────────── */
+    window.smSetStep = function(step) {
+      /* Panels */
+      for (var i = 1; i <= 3; i++) {
+        var p = document.getElementById('smStep' + i);
+        if (p) p.classList.toggle('sm-panel--active', i === step);
+      }
+      /* Dots */
+      for (var j = 1; j <= 3; j++) {
+        var d = document.getElementById('smDot' + j);
+        if (!d) continue;
+        d.classList.remove('sm-step--active', 'sm-step--done');
+        if (j === step) d.classList.add('sm-step--active');
+        if (j < step) d.classList.add('sm-step--done');
+      }
+      /* Lines */
+      var l1 = document.getElementById('smLine1');
+      var l2 = document.getElementById('smLine2');
+      if (l1) l1.classList.toggle('sm-step__line--done', step > 1);
+      if (l2) l2.classList.toggle('sm-step__line--done', step > 2);
+
+      /* Scroll box to top */
+      var box = document.querySelector('#surveyModal .sm-box');
+      if (box) box.scrollTop = 0;
+    };
+
+    window.smGoStep2 = function() {
+      var err = document.getElementById('smErr1');
+      err.classList.remove('sm-error--show');
+      if (!document.getElementById('smTitle').value.trim()) {
+        err.textContent = 'Please enter a survey title.';
+        err.classList.add('sm-error--show');
+        document.getElementById('smTitle').focus();
+        return;
+      }
+      if (!document.getElementById('smStart').value) {
+  err.textContent = 'Please set a start date for the survey.';
+  err.classList.add('sm-error--show');
+  document.getElementById('smStart').focus();
+  return;
+}
+      if (!document.getElementById('smEnd').value) {
+        err.textContent = 'Please set an end date for the survey.';
+        err.classList.add('sm-error--show');
+        document.getElementById('smEnd').focus();
+        return;
+      }
+      if (document.getElementById('smStart').value && document.getElementById('smEnd').value < document.getElementById('smStart').value) {
+        err.textContent = 'End date cannot be before start date.';
+        err.classList.add('sm-error--show');
+        document.getElementById('smEnd').focus();
+        return;
+      }
+      smSetStep(2);
+    };
+
+    window.smGoStep3 = function() {
+      var err = document.getElementById('smErr2');
+      err.classList.remove('sm-error--show');
+      if (document.querySelectorAll('.sm-qcard').length === 0) {
+        err.textContent = 'Add at least one question before continuing.';
+        err.classList.add('sm-error--show');
+        return;
+      }
+        var hasEmpty = false;
+  document.querySelectorAll('.sm-qcard .sm-qtext').forEach(function(input) {
+    if (!input.value.trim()) hasEmpty = true;
+  });
+  if (hasEmpty) {
+    err.textContent = 'All questions must have text before continuing.';
+    err.classList.add('sm-error--show');
+    return;
+  }
+      smBuildReview();
+      smSetStep(3);
+    };
+
+
+    /* ────────────────────────────────────────────────
+       5. QUESTIONS
+    ──────────────────────────────────────────────── */
+    window.smAddQuestion = function() {
+      smQCount++;
+      var n = smQCount;
+      var card = document.createElement('div');
+      card.className = 'sm-qcard';
+      card.dataset.qid = n;
+      card.innerHTML =
+        '<div class="sm-qrow">' +
+        '<span class="sm-qnum">' + n + '</span>' +
+        '<div class="sm-qbody">' +
+        '<input type="text" class="sm-qtext" placeholder="Type your question here…" autocomplete="off">' +
+        '<div style="display:flex;gap:10px;align-items:center;margin-top:4px;">' +
+        '<select class="sm-qtype" onchange="smRenderOpts(this)">' +
+        '<option value="text">Short Answer</option>' +
+        '<option value="textarea">Long Answer</option>' +
+        '<option value="radio">Multiple Choice (single)</option>' +
+        '<option value="checkbox">Checkboxes (multiple)</option>' +
+        '<option value="scale">Rating Scale 1–5</option>' +
+        '</select>' +
+        '<label style="display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--ink-2);cursor:pointer;white-space:nowrap;">' +
+        '<input type="checkbox" class="sm-qrequired" checked style="accent-color:var(--teal);width:14px;height:14px;"> Required' +
+        '</label>' +
+        '</div>' +
+        '<div class="sm-opts-wrap"></div>' +
+        '</div>' +
+        '<button type="button" class="sm-qdel" onclick="smDeleteQuestion(this)" aria-label="Delete question">×</button>' +
+        '</div>';
+      document.getElementById('smQList').appendChild(card);
+      card.querySelector('.sm-qtext').focus();
+    };
+
+    window.smDeleteQuestion = function(btn) {
+      btn.closest('.sm-qcard').remove();
+      /* Re-number remaining */
+      document.querySelectorAll('#smQList .sm-qcard').forEach(function(c, i) {
+        var num = c.querySelector('.sm-qnum');
+        if (num) num.textContent = i + 1;
+      });
+    };
+
+    window.smRenderOpts = function(select) {
+      var type = select.value;
+      var wrap = select.closest('.sm-qbody').querySelector('.sm-opts-wrap');
+      wrap.innerHTML = '';
+
+      if (type === 'radio' || type === 'checkbox') {
+        var div = document.createElement('div');
+        div.className = 'sm-opts';
+        div.innerHTML =
+          '<div class="sm-opt-row"><input type="text" placeholder="Option 1"><button type="button" class="sm-opt-del" onclick="smDelOpt(this)">×</button></div>' +
+          '<div class="sm-opt-row"><input type="text" placeholder="Option 2"><button type="button" class="sm-opt-del" onclick="smDelOpt(this)">×</button></div>' +
+          '<button type="button" class="sm-btn-addopt" onclick="smAddOpt(this)">+ Add option</button>';
+        wrap.appendChild(div);
+      }
+
+      if (type === 'scale') {
+        wrap.innerHTML =
+          '<div style="display:flex;gap:6px;margin-top:6px;">' + [1, 2, 3, 4, 5].map(function(n) {
+            return '<div style="width:32px;height:32px;border-radius:8px;border:1.5px solid var(--paper-3);' +
+              'display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;' +
+              'background:#fff;color:var(--ink-3);">' + n + '</div>';
+          }).join('') +
+          '</div>' +
+          '<p style="font-size:12px;color:var(--ink-3);margin-top:6px;">Respondents choose a value from 1 to 5.</p>';
+      }
+    };
+
+    window.smAddOpt = function(btn) {
+      var opts = btn.closest('.sm-opts');
+      var count = opts.querySelectorAll('.sm-opt-row').length + 1;
+      var row = document.createElement('div');
+      row.className = 'sm-opt-row';
+      row.innerHTML = '<input type="text" placeholder="Option ' + count + '"><button type="button" class="sm-opt-del" onclick="smDelOpt(this)">×</button>';
+      opts.insertBefore(row, btn);
+    };
+
+    window.smDelOpt = function(btn) {
+      var opts = btn.closest('.sm-opts');
+      if (opts.querySelectorAll('.sm-opt-row').length > 1) {
+        btn.closest('.sm-opt-row').remove();
+      }
+    };
+
+
+    /* ────────────────────────────────────────────────
+       6. REVIEW BUILD
+    ──────────────────────────────────────────────── */
+    function smBuildReview() {
+      var title = document.getElementById('smTitle').value;
+      var desc = document.getElementById('smDesc').value;
+      var status = document.getElementById('smStatus').value;
+      var start = document.getElementById('smStart').value;
+      var end = document.getElementById('smEnd').value;
+
+      var meta = [(status.charAt(0).toUpperCase() + status.slice(1))];
+      if (start) meta.push('From ' + start);
+      if (end) meta.push('To ' + end);
+
+      var html =
+        '<div class="sm-review-card">' +
+        '<strong>' + esc(title) + '</strong>' +
+        '<p>' + esc(desc || '—') + '</p>' +
+        '<p style="font-size:12px;color:var(--ink-3);margin-top:6px;">' + meta.join(' · ') + '</p>' +
+        '</div>' +
+        '<div class="sm-review-qlabel">Questions (' + document.querySelectorAll('.sm-qcard').length + ')</div>';
+
+      document.querySelectorAll('.sm-qcard').forEach(function(card, i) {
+        var text = card.querySelector('.sm-qtext').value || '(untitled)';
+        var typeEl = card.querySelector('.sm-qtype');
+        var typeName = typeEl ? typeEl.options[typeEl.selectedIndex].text : '';
+        html +=
+          '<div class="sm-review-qcard">' +
+          '<div class="sm-review-qnum">' + (i + 1) + '</div>' +
+          '<div class="sm-review-qbody">' +
+          '<b>' + esc(text) + '</b>' +
+          '<small>' + esc(typeName) + ' · ' + (card.querySelector('.sm-qrequired') && card.querySelector('.sm-qrequired').checked ? '✱ Required' : 'Optional') + '</small>' + '</div>' +
+          '</div>';
+      });
+
+      document.getElementById('smReview').innerHTML = html;
+    }
+
+    function esc(str) {
+      return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+
+    /* ────────────────────────────────────────────────
+       7. SUBMIT / LAUNCH
+    ──────────────────────────────────────────────── */
+    window.smLaunch = function() {
+      var title = document.getElementById('smTitle').value.trim();
+      var desc = document.getElementById('smDesc').value.trim();
+      var status = document.getElementById('smStatus').value;
+
+      if (!title) {
+        smToastMsg('Title is required.', false);
+        smSetStep(1);
+        return;
+      }
+
+      var questions = [];
+      document.querySelectorAll('.sm-qcard').forEach(function(card) {
+        var text = card.querySelector('.sm-qtext').value.trim();
+        var typeEl = card.querySelector('.sm-qtype');
+        var type = typeEl ? typeEl.value : 'text';
+        if (!text) return;
+        var opts = [];
+        card.querySelectorAll('.sm-opt-row input').forEach(function(inp) {
+          if (inp.value.trim()) opts.push(inp.value.trim());
+        });
+        questions.push({
+          text: text,
+          type: type,
+          opts: opts,
+          required: card.querySelector('.sm-qrequired') ? card.querySelector('.sm-qrequired').checked : true // ← add this
+        });
+      });
+
+      if (questions.length === 0) {
+        smToastMsg('Add at least one question.', false);
+        smSetStep(2);
+        return;
+      }
+
+      var btn = document.getElementById('smLaunchBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+
+      var fd = new FormData();
+      fd.append('action', 'create');
+      fd.append('title', title);
+      fd.append('description', desc);
+      fd.append('status', status);
+
+      function to24(h, m, ap) {
+        var hour = parseInt(h);
+        if (ap === 'AM' && hour === 12) hour = 0;
+        if (ap === 'PM' && hour !== 12) hour += 12;
+        return String(hour).padStart(2, '0') + ':' + m + ':00';
+      }
+      var startTime = to24(document.getElementById('smStartHour').value, document.getElementById('smStartMin').value, document.getElementById('smStartAmPm').value);
+      var endTime = to24(document.getElementById('smEndHour').value, document.getElementById('smEndMin').value, document.getElementById('smEndAmPm').value);
+      fd.append('start_date', document.getElementById('smStart').value + ' ' + startTime);
+      fd.append('end_date', document.getElementById('smEnd').value + ' ' + endTime);
+      fd.append('questions', JSON.stringify(questions));
+
+      fetch('/surveysystem/app/controllers/surveyController.php', {
+          method: 'POST',
+          body: fd
+        })
+        .then(function(res) {
+          return res.text().then(function(txt) {
+            console.log('RAW RESPONSE:', txt);
+            try {
+              return JSON.parse(txt);
+            } catch (e) {
+              throw new Error('Invalid JSON: ' + txt.slice(0, 200));
+            }
+          });
+        })
+        .then(function(data) {
+          if (!data.success) throw new Error(data.message || 'Server returned failure.');
+          window.onbeforeunload = null;
+          smClose();
+          location.reload();
+        })
+        .catch(function(err) {
+          console.error(err);
+          smToastMsg(err.message || 'Server error. See console.', false);
+        });
+    };
+
+
+    /* ────────────────────────────────────────────────
+       8. TOAST
+    ──────────────────────────────────────────────── */
+    window.smToastMsg = function(msg, success) {
+      var t = document.getElementById('smToast');
+      document.getElementById('smToastMsg').textContent = msg;
+      t.className = 'sm-toast sm-toast--show ' + (success ? 'sm-toast--success' : 'sm-toast--error');
+      clearTimeout(smToastTimer);
+      smToastTimer = setTimeout(function() {
+        t.classList.remove('sm-toast--show');
+      }, 3500);
+    };
+
+
+    /* ────────────────────────────────────────────────
+       9. DELETE CONFIRMATION
+    ──────────────────────────────────────────────── */
+    window.confirmDelete = function(btn, surveyId) {
+      var row = btn.closest('tr');
+      var existing = row.querySelector('.delete-confirm-inline');
+      if (existing) {
+        existing.remove();
+        return;
+      }
+
+      var bar = document.createElement('div');
+      bar.className = 'delete-confirm-inline';
+      bar.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 18px;background:var(--rose-lt);border-top:1px solid var(--paper-2);';
+      bar.innerHTML =
         '<span style="font-size:13px;color:var(--rose);flex:1;">Delete this survey? This cannot be undone.</span>' +
         '<button style="background:var(--rose);color:#fff;border:none;border-radius:7px;padding:5px 14px;font-size:12.5px;font-family:DM Sans,sans-serif;cursor:pointer;" onclick="doDelete(' + surveyId + ',this)">Yes, delete</button>' +
         '<button style="background:none;border:1.5px solid var(--paper-3);border-radius:7px;padding:5px 14px;font-size:12.5px;font-family:DM Sans,sans-serif;cursor:pointer;color:var(--ink-2);" onclick="this.closest(\'.delete-confirm-inline\').remove()">Cancel</button>';
 
-    var td = document.createElement('td');
-    td.colSpan = 6;
-    td.style.padding = '0';
-    td.appendChild(bar);
+      var td = document.createElement('td');
+      td.colSpan = 6;
+      td.style.padding = '0';
+      td.appendChild(bar);
 
-    var confirmRow = document.createElement('tr');
-    confirmRow.appendChild(td);
-    row.after(confirmRow);
-    bar._confirmRow = confirmRow;
-};
+      var confirmRow = document.createElement('tr');
+      confirmRow.appendChild(td);
+      row.after(confirmRow);
+      bar._confirmRow = confirmRow;
+    };
 
-window.doDelete = function(surveyId, btn) {
-    var confirmRow = btn.closest('.delete-confirm-inline')._confirmRow;
-    btn.disabled = true;
-    btn.textContent = 'Deleting…';
+    window.doDelete = function(surveyId, btn) {
+      var confirmRow = btn.closest('.delete-confirm-inline')._confirmRow;
+      btn.disabled = true;
+      btn.textContent = 'Deleting…';
 
-    var fd = new FormData();
-    fd.append('action', 'delete');
-    fd.append('id', surveyId);
+      var fd = new FormData();
+      fd.append('action', 'delete');
+      fd.append('id', surveyId);
 
-    fetch('/surveysystem/app/controllers/surveyController.php', {
-        method: 'POST',
-        body: fd
-    }).then(function(r) { return r.json(); })
-    .then(function(data) {
-        if (data.success) {
+      fetch('/surveysystem/app/controllers/surveyController.php', {
+          method: 'POST',
+          body: fd
+        }).then(function(r) {
+          return r.json();
+        })
+        .then(function(data) {
+          if (data.success) {
             var surveyRow = confirmRow.previousElementSibling;
             if (surveyRow) surveyRow.remove();
             if (confirmRow) confirmRow.remove();
             filterSurveys();
-        } else {
+          } else {
             smToastMsg(data.message || 'Delete failed.', false);
             if (confirmRow) confirmRow.remove();
-        }
-    })
-    .catch(function() {
-        smToastMsg('Server error.', false);
-        if (confirmRow) confirmRow.remove();
-    });
+          }
+        })
+        .catch(function() {
+          smToastMsg('Server error.', false);
+          if (confirmRow) confirmRow.remove();
+        });
 
-  };
-
-
-  /* ────────────────────────────────────────────────
-     10. TABLE — FILTER + PAGINATION
-  ──────────────────────────────────────────────── */
-  var ROWS_PER_PAGE = 10;
-  var currentPage = 1;
-  var visibleRows = [];
-
-  function getAllRows() {
-    return Array.from(document.querySelectorAll('#surveyTable tr'));
-  }
-
-  window.filterSurveys = function() {
-    var q = document.getElementById('surveySearch').value.toLowerCase();
-    var status = document.getElementById('statusFilter').value;
-
-    visibleRows = getAllRows().filter(function(row) {
-      var title = (row.querySelector('.survey-title') || {}).textContent || '';
-      var rstatus = row.dataset.status || '';
-      return (!q || title.toLowerCase().includes(q)) &&
-        (!status || rstatus === status);
-    });
-
-    currentPage = 1;
-    renderPage();
-  };
-
-  function renderPage() {
-    var all = getAllRows();
-    var total = visibleRows.length;
-    var start = (currentPage - 1) * ROWS_PER_PAGE;
-    var end = start + ROWS_PER_PAGE;
-
-    all.forEach(function(r) {
-      r.style.display = 'none';
-    });
-    visibleRows.slice(start, end).forEach(function(r) {
-      r.style.display = '';
-    });
-
-    var empty = document.getElementById('emptyState');
-    if (empty) empty.style.display = total === 0 ? 'block' : 'none';
-
-    var info = document.getElementById('pagInfo');
-    if (info) {
-      info.textContent = total === 0 ?
-        'No surveys found' :
-        'Showing ' + (start + 1) + '–' + Math.min(end, total) + ' of ' + total;
-    }
-    renderPageButtons(total);
-  }
-
-  function renderPageButtons(total) {
-    var totalPages = Math.ceil(total / ROWS_PER_PAGE) || 1;
-    var container = document.getElementById('pageButtons');
-    if (!container) return;
-    container.innerHTML = '';
-
-    /* Prev */
-    var prev = document.createElement('button');
-    prev.className = 'page-btn';
-    prev.innerHTML = '‹';
-    prev.disabled = currentPage === 1;
-    prev.onclick = function() {
-      if (currentPage > 1) {
-        currentPage--;
-        renderPage();
-      }
     };
-    container.appendChild(prev);
 
-    /* Pages */
-    for (var i = 1; i <= totalPages; i++) {
-      (function(page) {
-        var btn = document.createElement('button');
-        btn.className = 'page-btn' + (page === currentPage ? ' active' : '');
-        btn.textContent = page;
-        btn.onclick = function() {
-          currentPage = page;
+
+    /* ────────────────────────────────────────────────
+       10. TABLE — FILTER + PAGINATION
+    ──────────────────────────────────────────────── */
+    var ROWS_PER_PAGE = 10;
+    var currentPage = 1;
+    var visibleRows = [];
+
+    function getAllRows() {
+      return Array.from(document.querySelectorAll('#surveyTable tr'));
+    }
+
+    window.filterSurveys = function() {
+      var q = document.getElementById('surveySearch').value.toLowerCase();
+      var status = document.getElementById('statusFilter').value;
+
+      visibleRows = getAllRows().filter(function(row) {
+        var title = (row.querySelector('.survey-title') || {}).textContent || '';
+        var rstatus = row.dataset.status || '';
+        return (!q || title.toLowerCase().includes(q)) &&
+          (!status || rstatus === status);
+      });
+
+      currentPage = 1;
+      renderPage();
+    };
+
+    function renderPage() {
+      var all = getAllRows();
+      var total = visibleRows.length;
+      var start = (currentPage - 1) * ROWS_PER_PAGE;
+      var end = start + ROWS_PER_PAGE;
+
+      all.forEach(function(r) {
+        r.style.display = 'none';
+      });
+      visibleRows.slice(start, end).forEach(function(r) {
+        r.style.display = '';
+      });
+
+      var empty = document.getElementById('emptyState');
+      if (empty) empty.style.display = total === 0 ? 'block' : 'none';
+
+      var info = document.getElementById('pagInfo');
+      if (info) {
+        info.textContent = total === 0 ?
+          'No surveys found' :
+          'Showing ' + (start + 1) + '–' + Math.min(end, total) + ' of ' + total;
+      }
+      renderPageButtons(total);
+    }
+
+    function renderPageButtons(total) {
+      var totalPages = Math.ceil(total / ROWS_PER_PAGE) || 1;
+      var container = document.getElementById('pageButtons');
+      if (!container) return;
+      container.innerHTML = '';
+
+      /* Prev */
+      var prev = document.createElement('button');
+      prev.className = 'page-btn';
+      prev.innerHTML = '‹';
+      prev.disabled = currentPage === 1;
+      prev.onclick = function() {
+        if (currentPage > 1) {
+          currentPage--;
           renderPage();
-        };
-        container.appendChild(btn);
-      })(i);
+        }
+      };
+      container.appendChild(prev);
+
+      /* Pages */
+      for (var i = 1; i <= totalPages; i++) {
+        (function(page) {
+          var btn = document.createElement('button');
+          btn.className = 'page-btn' + (page === currentPage ? ' active' : '');
+          btn.textContent = page;
+          btn.onclick = function() {
+            currentPage = page;
+            renderPage();
+          };
+          container.appendChild(btn);
+        })(i);
+      }
+
+      /* Next */
+      var next = document.createElement('button');
+      next.className = 'page-btn';
+      next.innerHTML = '›';
+      next.disabled = currentPage >= totalPages;
+      next.onclick = function() {
+        if (currentPage < totalPages) {
+          currentPage++;
+          renderPage();
+        }
+      };
+      container.appendChild(next);
     }
 
-    /* Next */
-    var next = document.createElement('button');
-    next.className = 'page-btn';
-    next.innerHTML = '›';
-    next.disabled = currentPage >= totalPages;
-    next.onclick = function() {
-      if (currentPage < totalPages) {
-        currentPage++;
-        renderPage();
-      }
-    };
-    container.appendChild(next);
-  }
-
-  /* Boot the table on load */
-  document.addEventListener('DOMContentLoaded', function() {
-  visibleRows = getAllRows();
-  renderPage();
-  });
-window.changeSurveyStatus = function(surveyId, action) {
-    var fd = new FormData();
-    fd.append('action', action);
-    fd.append('id', surveyId);
-
-    fetch('/surveysystem/app/controllers/surveyController.php', {
-      method: 'POST',
-      body: fd
-    }).then(function(r) { return r.json(); })
-    .then(function(data) {
-      if (data.success) {
-        smToastMsg(action === 'publish' ? 'Survey published!' : 'Survey closed!', true);
-        setTimeout(function() { location.reload(); }, 1000);
-      } else {
-        smToastMsg(data.message || 'Action failed.', false);
-      }
-    }).catch(function() {
-      smToastMsg('Server error.', false);
+    /* Boot the table on load */
+    document.addEventListener('DOMContentLoaded', function() {
+      visibleRows = getAllRows();
+      renderPage();
     });
-  };
+    window.changeSurveyStatus = function(surveyId, action) {
+      var fd = new FormData();
+      fd.append('action', action);
+      fd.append('id', surveyId);
+
+      fetch('/surveysystem/app/controllers/surveyController.php', {
+          method: 'POST',
+          body: fd
+        }).then(function(r) {
+          return r.json();
+        })
+        .then(function(data) {
+          if (data.success) {
+            smToastMsg(action === 'publish' ? 'Survey published!' : 'Survey closed!', true);
+            setTimeout(function() {
+              location.reload();
+            }, 1000);
+          } else {
+            smToastMsg(data.message || 'Action failed.', false);
+          }
+        }).catch(function() {
+          smToastMsg('Server error.', false);
+        });
+    };
   })();
 </script>
+<!-- ══════════════════════════════════════════════════
+     VIEW MODAL
+     ══════════════════════════════════════════════════ -->
+<div id="viewModal" class="sm-backdrop" role="dialog" aria-modal="true">
+  <div class="sm-box" style="max-width:720px;">
+    <div class="sm-panel sm-panel--active" style="padding:1.75rem 2rem 2rem;">
+      <div class="sm-panel__head">
+        <h2>Survey <em>Details</em></h2>
+        <button class="sm-close" onclick="closeViewModal()">x</button>
+      </div>
 
+      <div id="viewLoading" style="text-align:center;padding:3rem 0;color:var(--ink-3);font-size:14px;">Loading...</div>
+
+      <div id="viewContent" style="display:none;">
+        <div style="background:var(--paper-2);border:1.5px solid var(--paper-3);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem;">
+          <div style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--ink);margin-bottom:6px;" id="vTitle"></div>
+          <div style="font-size:13px;color:var(--ink-3);" id="vDesc"></div>
+          <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:10px;" id="vMeta"></div>
+        </div>
+
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);margin-bottom:10px;">
+          Questions <span id="vQCount" style="font-weight:400;text-transform:none;font-size:12px;"></span>
+        </div>
+        <div id="vQuestions" style="display:flex;flex-direction:column;gap:10px;margin-bottom:1.5rem;"></div>
+
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);margin-bottom:10px;">
+          Responses <span id="vRCount" style="font-weight:400;text-transform:none;font-size:12px;"></span>
+        </div>
+        <div id="vResponses"></div>
+      </div>
+
+      <div class="sm-footer" style="justify-content:flex-end;">
+        <button class="sm-btn sm-btn--ghost" onclick="closeViewModal()">Close</button>
+        <button class="sm-btn sm-btn--gold" id="vEditBtn">
+          <svg viewBox="0 0 24 24">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+          </svg>
+          Edit Survey
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════
+     EDIT MODAL
+     ══════════════════════════════════════════════════ -->
+<div id="editModal" class="sm-backdrop" role="dialog" aria-modal="true">
+  <div class="sm-box" style="max-width:700px;">
+
+    <div class="sm-steps">
+      <div class="sm-step sm-step--active" id="emDot1">
+        <div class="sm-step__dot">1</div>
+        <span class="sm-step__label">Details</span>
+      </div>
+      <div class="sm-step__line" id="emLine1"></div>
+      <div class="sm-step" id="emDot2">
+        <div class="sm-step__dot">2</div>
+        <span class="sm-step__label">Questions</span>
+      </div>
+    </div>
+
+    <div id="editLoading" style="text-align:center;padding:3rem 0;color:var(--ink-3);font-size:14px;">Loading...</div>
+
+    <!-- Step 1: Details -->
+    <div class="sm-panel" id="emStep1">
+      <div class="sm-panel__head">
+        <h2>Edit <em>Details</em></h2>
+        <button class="sm-close" onclick="closeEditModal()">x</button>
+      </div>
+      <input type="hidden" id="emId">
+      <div class="sm-form">
+        <div class="sm-field">
+          <label>Survey Title <span class="req">*</span></label>
+          <input type="text" id="emTitle" placeholder="Survey title" autocomplete="off">
+        </div>
+        <div class="sm-field">
+          <label>Description</label>
+          <textarea id="emDesc" rows="3" placeholder="Brief description..."></textarea>
+        </div>
+        <div class="sm-row">
+          <div class="sm-field">
+            <label>Status</label>
+            <select id="emStatus">
+              <option value="published">Published</option>
+              <option value="pending">Pending</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+        </div>
+        <div class="sm-row">
+          <div class="sm-field">
+<label>Start Date <span class="req">*</span></label>
+            <input type="datetime-local" id="emStart">
+          </div>
+          <div class="sm-field">
+            <label>End Date &amp; Time <span class="req">*</span></label>
+            <input type="datetime-local" id="emEnd">
+          </div>
+        </div>
+      </div>
+      <div class="sm-error" id="emErr1"></div>
+      <div class="sm-footer">
+        <button class="sm-btn sm-btn--ghost" onclick="closeEditModal()">Cancel</button>
+        <button class="sm-btn sm-btn--gold" onclick="emGoStep2()">
+          Next: Questions
+          <svg viewBox="0 0 24 24">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: Questions -->
+    <div class="sm-panel" id="emStep2">
+      <div class="sm-panel__head">
+        <h2>Edit <em>Questions</em></h2>
+        <button class="sm-close" onclick="closeEditModal()">x</button>
+      </div>
+      <div id="emQList" class="sm-qlist"></div>
+      <button class="sm-btn-addq" onclick="emAddQuestion()">
+        <svg viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        Add Question
+      </button>
+      <div class="sm-error" id="emErr2"></div>
+      <div class="sm-footer">
+        <button class="sm-btn sm-btn--ghost" onclick="emSetStep(1)">
+          <svg viewBox="0 0 24 24">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          Back
+        </button>
+        <button class="sm-btn sm-btn--launch" onclick="emSave()" id="emSaveBtn">
+          <svg viewBox="0 0 24 24">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          Save Changes
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<script>
+  (function() {
+    'use strict';
+
+    // Teleport modals to body to fix position:fixed inside transformed ancestors
+    function teleportNew() {
+      ['viewModal', 'editModal'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el && el.parentNode !== document.body) document.body.appendChild(el);
+      });
+    }
+    teleportNew();
+    document.addEventListener('DOMContentLoaded', teleportNew);
+
+    // Close on backdrop click
+    document.addEventListener('click', function(e) {
+      if (e.target === document.getElementById('viewModal')) closeViewModal();
+      if (e.target === document.getElementById('editModal')) closeEditModal();
+    });
+
+
+    /* ════════════════════════════════════════
+       VIEW MODAL
+    ════════════════════════════════════════ */
+    window.openViewModal = function(surveyId) {
+      var modal = document.getElementById('viewModal');
+      document.getElementById('viewLoading').style.display = 'block';
+      document.getElementById('viewContent').style.display = 'none';
+      modal.classList.add('sm-open');
+      document.body.classList.add('modal-open');
+
+      fetch('/surveysystem/app/controllers/surveyController.php?id=' + surveyId)
+        .then(function(r) {
+          return r.json();
+        })
+        .then(function(data) {
+          if (!data.success) throw new Error(data.message || 'Failed to load');
+          renderViewModal(data);
+        })
+        .catch(function(err) {
+          document.getElementById('viewLoading').textContent = 'Error: ' + err.message;
+        });
+    };
+
+    window.closeViewModal = function() {
+      document.getElementById('viewModal').classList.remove('sm-open');
+      document.body.classList.remove('modal-open');
+    };
+
+    function renderViewModal(data) {
+      var s = data.survey;
+
+      document.getElementById('vTitle').textContent = s.title || '';
+      document.getElementById('vDesc').textContent = s.description || '';
+
+      var statusBg = {
+        published: 'var(--teal-lt)',
+        pending: 'var(--gold-light)',
+        closed: 'var(--rose-lt)'
+      };
+      var statusColor = {
+        published: 'var(--teal)',
+        pending: 'var(--gold-dark)',
+        closed: 'var(--rose)'
+      };
+      var st = s.status || 'pending';
+      var metaHtml =
+        '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;background:' + (statusBg[st] || '#eee') + ';color:' + (statusColor[st] || '#333') + ';">' +
+        '<span style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;"></span>' +
+        st.charAt(0).toUpperCase() + st.slice(1) +
+        '</span>';
+      if (s.start_date) metaHtml += '<span style="font-size:13px;color:var(--ink-3);">From ' + fmtDate(s.start_date) + '</span>';
+      if (s.end_date) metaHtml += '<span style="font-size:13px;color:var(--ink-3);">To ' + fmtDate(s.end_date) + '</span>';
+      metaHtml += '<span style="font-size:13px;color:var(--ink-3);">' + data.responseCount + ' / ' + data.totalStudents + ' responses (' + data.pct + '%)</span>';
+      document.getElementById('vMeta').innerHTML = metaHtml;
+
+      // Questions
+      var qs = data.questions || [];
+      document.getElementById('vQCount').textContent = '(' + qs.length + ')';
+      var typeLabels = {
+        text: 'Short Answer',
+        textarea: 'Long Answer',
+        radio: 'Multiple Choice',
+        checkbox: 'Checkboxes',
+        scale: 'Rating 1-5'
+      };
+      var qHtml = '';
+      qs.forEach(function(q, i) {
+        var opts = (q.options || []).map(function(o) {
+          return '<span style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2);padding:3px 8px;background:var(--paper-2);border-radius:6px;">' +
+            '<span style="width:7px;height:7px;border-radius:50%;border:1.5px solid var(--ink-3);display:inline-block;"></span>' + esc(o) + '</span>';
+        }).join('');
+        var scaleHtml = '';
+        if (q.question_type === 'scale') {
+          scaleHtml = '<div style="display:flex;gap:6px;margin-top:6px;">' + [1, 2, 3, 4, 5].map(function(n) {
+              return '<div style="width:30px;height:30px;border-radius:7px;border:1.5px solid var(--paper-3);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--ink-3);">' + n + '</div>';
+            }).join('') +
+            '</div>';
+        }
+        qHtml +=
+          '<div style="background:var(--paper-2);border:1.5px solid var(--paper-3);border-radius:var(--radius);padding:.9rem 1rem;display:flex;gap:10px;">' +
+          '<span style="width:24px;height:24px;border-radius:50%;background:var(--gold-light);color:var(--gold-dark);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">' + (i + 1) + '</span>' +
+          '<div style="flex:1;">' +
+          '<div style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:4px;">' + esc(q.question_text) + '</div>' +
+          '<div style="font-size:12px;color:var(--ink-3);margin-bottom:6px;">' +
+          (typeLabels[q.question_type] || q.question_type) +
+          (q.is_required ? ' <span style="color:var(--rose);">* Required</span>' : '') +
+          '</div>' +
+          (opts ? '<div style="display:flex;flex-wrap:wrap;gap:5px;">' + opts + '</div>' : '') +
+          scaleHtml +
+          '</div>' +
+          '</div>';
+      });
+      document.getElementById('vQuestions').innerHTML = qHtml || '<p style="color:var(--ink-3);font-size:13px;">No questions yet.</p>';
+
+      // Responses
+      var rs = data.responses || [];
+      document.getElementById('vRCount').textContent = '(' + rs.length + ')';
+      var rHtml = '';
+      if (rs.length === 0) {
+        rHtml = '<p style="color:var(--ink-3);font-size:13px;text-align:center;padding:1.5rem 0;">No responses yet.</p>';
+      } else {
+        rHtml =
+          '<div style="overflow-x:auto;border-radius:var(--radius);border:1.5px solid var(--paper-3);">' +
+          '<table style="width:100%;border-collapse:collapse;font-size:13px;min-width:400px;">' +
+          '<thead><tr style="background:var(--paper-2);border-bottom:1.5px solid var(--paper-3);">' +
+          '<th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);">Student</th>' +
+          '<th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);">Submitted</th>' +
+          '</tr></thead><tbody>';
+        rs.forEach(function(r) {
+          rHtml +=
+            '<tr style="border-bottom:1px solid var(--paper-2);">' +
+            '<td style="padding:10px 14px;">' +
+            '<div style="font-weight:500;color:var(--ink);">' + esc(r.student_name) + '</div>' +
+            '<div style="font-size:12px;color:var(--ink-3);">' + esc(r.email) + '</div>' +
+            '</td>' +
+            '<td style="padding:10px 14px;color:var(--ink-3);font-size:12px;">' + fmtDate(r.submitted_at) + '</td>' +
+            '</tr>';
+        });
+        rHtml += '</tbody></table></div>';
+      }
+      document.getElementById('vResponses').innerHTML = rHtml;
+
+      // Wire edit button
+      document.getElementById('vEditBtn').onclick = function() {
+        closeViewModal();
+        openEditModal(parseInt(s.id));
+      };
+
+      document.getElementById('viewLoading').style.display = 'none';
+      document.getElementById('viewContent').style.display = 'block';
+    }
+
+
+    /* ════════════════════════════════════════
+       EDIT MODAL
+    ════════════════════════════════════════ */
+    var emQCount = 0;
+
+    window.openEditModal = function(surveyId) {
+      var modal = document.getElementById('editModal');
+      document.getElementById('editLoading').style.display = 'block';
+      document.getElementById('emStep1').classList.remove('sm-panel--active');
+      document.getElementById('emStep2').classList.remove('sm-panel--active');
+      modal.classList.add('sm-open');
+      document.body.classList.add('modal-open');
+
+      fetch('/surveysystem/app/controllers/surveyController.php?id=' + surveyId)
+        .then(function(r) {
+          return r.json();
+        })
+        .then(function(data) {
+          if (!data.success) throw new Error(data.message || 'Failed to load');
+          prefillEditModal(data);
+        })
+        .catch(function(err) {
+          document.getElementById('editLoading').textContent = 'Error: ' + err.message;
+        });
+    };
+
+    window.closeEditModal = function() {
+      document.getElementById('editModal').classList.remove('sm-open');
+      document.body.classList.remove('modal-open');
+    };
+
+    function prefillEditModal(data) {
+      var s = data.survey;
+      document.getElementById('emId').value = s.id;
+      document.getElementById('emTitle').value = s.title || '';
+      document.getElementById('emDesc').value = s.description || '';
+      document.getElementById('emStatus').value = s.status || 'pending';
+      document.getElementById('emStart').value = s.start_date ? s.start_date.slice(0, 16) : '';
+      document.getElementById('emEnd').value = s.end_date ? s.end_date.slice(0, 16) : '';
+
+      emQCount = 0;
+      document.getElementById('emQList').innerHTML = '';
+      (data.questions || []).forEach(function(q) {
+        emAddQuestion({
+          text: q.question_text,
+          type: q.question_type,
+          opts: q.options || [],
+          required: !!q.is_required
+        });
+      });
+
+      document.getElementById('editLoading').style.display = 'none';
+      document.getElementById('emErr1').classList.remove('sm-error--show');
+      document.getElementById('emErr2').classList.remove('sm-error--show');
+      emSetStep(1);
+    }
+
+    window.emSetStep = function(step) {
+      document.getElementById('emStep1').classList.toggle('sm-panel--active', step === 1);
+      document.getElementById('emStep2').classList.toggle('sm-panel--active', step === 2);
+      var dot1 = document.getElementById('emDot1');
+      var dot2 = document.getElementById('emDot2');
+      var line = document.getElementById('emLine1');
+      dot1.classList.remove('sm-step--active', 'sm-step--done');
+      dot2.classList.remove('sm-step--active', 'sm-step--done');
+      if (step === 1) dot1.classList.add('sm-step--active');
+      if (step === 2) {
+        dot1.classList.add('sm-step--done');
+        dot2.classList.add('sm-step--active');
+      }
+      if (line) line.classList.toggle('sm-step__line--done', step > 1);
+      var box = document.querySelector('#editModal .sm-box');
+      if (box) box.scrollTop = 0;
+    };
+
+    window.emGoStep2 = function() {
+      var err = document.getElementById('emErr1');
+      err.classList.remove('sm-error--show');
+      if (!document.getElementById('emTitle').value.trim()) {
+        err.textContent = 'Please enter a survey title.';
+        err.classList.add('sm-error--show');
+        return;
+      }
+      if (!document.getElementById('emEnd').value) {
+        err.textContent = 'Please set an end date.';
+        err.classList.add('sm-error--show');
+        return;
+      }
+      emSetStep(2);
+    };
+
+    window.emAddQuestion = function(prefill) {
+      emQCount++;
+      var p = prefill || {};
+      var ptype = p.type || 'text';
+      var card = document.createElement('div');
+      card.className = 'sm-qcard';
+
+      var typeOpts = ['text', 'textarea', 'radio', 'checkbox', 'scale'].map(function(v) {
+        var labels = {
+          text: 'Short Answer',
+          textarea: 'Long Answer',
+          radio: 'Multiple Choice (single)',
+          checkbox: 'Checkboxes (multiple)',
+          scale: 'Rating Scale 1-5'
+        };
+        return '<option value="' + v + '"' + (v === ptype ? ' selected' : '') + '>' + labels[v] + '</option>';
+      }).join('');
+
+      var currentNum = document.querySelectorAll('#emQList .sm-qcard').length + 1;
+      card.innerHTML =
+        '<div class="sm-qrow">' +
+        '<span class="sm-qnum">' + currentNum + '</span>' +
+        '<div class="sm-qbody">' +
+        '<input type="text" class="sm-qtext" placeholder="Question text..." value="' + esc(p.text || '') + '" autocomplete="off">' +
+        '<div style="display:flex;gap:10px;align-items:center;margin-top:4px;">' +
+        '<select class="sm-qtype" onchange="emRenderOpts(this)">' + typeOpts + '</select>' +
+        '<label style="display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--ink-2);cursor:pointer;white-space:nowrap;">' +
+        '<input type="checkbox" class="sm-qrequired" style="accent-color:var(--teal);width:14px;height:14px;"' + (p.required !== false ? ' checked' : '') + '> Required' +
+        '</label>' +
+        '</div>' +
+        '<div class="sm-opts-wrap"></div>' +
+        '</div>' +
+        '<button type="button" class="sm-qdel" onclick="emDeleteQuestion(this)">x</button>' +
+        '</div>';
+
+      document.getElementById('emQList').appendChild(card);
+      emRenderOpts(card.querySelector('.sm-qtype'), p.opts || []);
+    };
+
+    window.emDeleteQuestion = function(btn) {
+      btn.closest('.sm-qcard').remove();
+      document.querySelectorAll('#emQList .sm-qcard').forEach(function(c, i) {
+        var n = c.querySelector('.sm-qnum');
+        if (n) n.textContent = i + 1;
+      });
+    };
+
+    window.emRenderOpts = function(select, prefillOpts) {
+      var type = select.value;
+      var wrap = select.closest('.sm-qbody').querySelector('.sm-opts-wrap');
+      wrap.innerHTML = '';
+      var opts = prefillOpts || [];
+
+      if (type === 'radio' || type === 'checkbox') {
+        var div = document.createElement('div');
+        div.className = 'sm-opts';
+        var rows = opts.length > 0 ? opts : ['', ''];
+        rows.forEach(function(o, idx) {
+          var row = document.createElement('div');
+          row.className = 'sm-opt-row';
+          row.innerHTML = '<input type="text" placeholder="Option ' + (idx + 1) + '" value="' + esc(o) + '"><button type="button" class="sm-opt-del" onclick="emDelOpt(this)">x</button>';
+          div.appendChild(row);
+        });
+        var addBtn = document.createElement('button');
+        addBtn.type = 'button';
+        addBtn.className = 'sm-btn-addopt';
+        addBtn.textContent = '+ Add option';
+        addBtn.onclick = function() {
+          emAddOpt(addBtn);
+        };
+        div.appendChild(addBtn);
+        wrap.appendChild(div);
+      }
+
+      if (type === 'scale') {
+        wrap.innerHTML =
+          '<div style="display:flex;gap:6px;margin-top:6px;">' + [1, 2, 3, 4, 5].map(function(n) {
+            return '<div style="width:32px;height:32px;border-radius:8px;border:1.5px solid var(--paper-3);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;background:#fff;color:var(--ink-3);">' + n + '</div>';
+          }).join('') +
+          '</div><p style="font-size:12px;color:var(--ink-3);margin-top:6px;">Respondents choose 1-5.</p>';
+      }
+    };
+
+    window.emAddOpt = function(btn) {
+      var opts = btn.closest('.sm-opts');
+      var count = opts.querySelectorAll('.sm-opt-row').length + 1;
+      var row = document.createElement('div');
+      row.className = 'sm-opt-row';
+      row.innerHTML = '<input type="text" placeholder="Option ' + count + '"><button type="button" class="sm-opt-del" onclick="emDelOpt(this)">x</button>';
+      opts.insertBefore(row, btn);
+    };
+
+    window.emDelOpt = function(btn) {
+      var opts = btn.closest('.sm-opts');
+      if (opts.querySelectorAll('.sm-opt-row').length > 1) btn.closest('.sm-opt-row').remove();
+    };
+
+    window.emSave = function() {
+      var err = document.getElementById('emErr2');
+      err.classList.remove('sm-error--show');
+
+      var id = document.getElementById('emId').value;
+      var title = document.getElementById('emTitle').value.trim();
+
+      var questions = [];
+      document.querySelectorAll('#emQList .sm-qcard').forEach(function(card) {
+        var text = card.querySelector('.sm-qtext').value.trim();
+        if (!text) return;
+        var typeEl = card.querySelector('.sm-qtype');
+        var opts = [];
+        card.querySelectorAll('.sm-opt-row input').forEach(function(inp) {
+          if (inp.value.trim()) opts.push(inp.value.trim());
+        });
+        questions.push({
+          text: text,
+          type: typeEl ? typeEl.value : 'text',
+          opts: opts,
+          required: !!(card.querySelector('.sm-qrequired') && card.querySelector('.sm-qrequired').checked)
+        });
+      });
+
+      if (questions.length === 0) {
+        err.textContent = 'Add at least one question.';
+        err.classList.add('sm-error--show');
+        return;
+      }
+
+      var btn = document.getElementById('emSaveBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      var fd = new FormData();
+      fd.append('action', 'update');
+      fd.append('id', id);
+      fd.append('title', title);
+      fd.append('description', document.getElementById('emDesc').value.trim());
+      fd.append('status', document.getElementById('emStatus').value);
+      fd.append('start_date', document.getElementById('emStart').value);
+      fd.append('end_date', document.getElementById('emEnd').value);
+      fd.append('questions', JSON.stringify(questions));
+
+      fetch('/surveysystem/app/controllers/surveyController.php', {
+          method: 'POST',
+          body: fd
+        })
+        .then(function(r) {
+          return r.json();
+        })
+        .then(function(data) {
+          if (!data.success) throw new Error(data.message || 'Save failed');
+          closeEditModal();
+          smToastMsg('Survey updated successfully!', true);
+          setTimeout(function() {
+            location.reload();
+          }, 1000);
+        })
+        .catch(function(e) {
+          btn.disabled = false;
+          btn.textContent = 'Save Changes';
+          err.textContent = e.message;
+          err.classList.add('sm-error--show');
+        });
+    };
+
+
+    /* helpers */
+    function esc(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function fmtDate(str) {
+      if (!str) return '-';
+      var d = new Date(str);
+      return isNaN(d) ? str : d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
+
+  })();
+</script>
 <?php include('./includes/footer.php'); ?>

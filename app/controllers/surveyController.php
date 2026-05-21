@@ -7,7 +7,97 @@ include(__DIR__ . '/../config/config.php');
 include(__DIR__ . '/notificationController.php');
 include(__DIR__ . '/userNotificationController.php');
 header('Content-Type: application/json');
+
 $action = $_POST['action'] ?? '';
+
+// ── VIEW SURVEY (GET request) ─────────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
+
+    $surveyId = (int)$_GET['id'];
+
+    if ($surveyId <= 0) {
+        ob_end_clean();
+        echo json_encode(['success' => false, 'message' => 'Invalid ID']);
+        exit;
+    }
+
+    $surveyRes = $conn->query("SELECT * FROM surveys WHERE id = $surveyId LIMIT 1");
+    if (!$surveyRes || $surveyRes->num_rows === 0) {
+        ob_end_clean();
+        echo json_encode(['success' => false, 'message' => 'Survey not found']);
+        exit;
+    }
+    $survey = $surveyRes->fetch_assoc();
+
+    $questionsRes = $conn->query("SELECT * FROM questions WHERE survey_id = $surveyId ORDER BY id ASC");
+    $questions = [];
+    while ($q = $questionsRes->fetch_assoc()) {
+        $questions[] = [
+            'id'            => (int)$q['id'],
+            'question_text' => $q['question_text'],
+            'question_type' => $q['question_type'],
+            'is_required'   => (int)($q['is_required'] ?? 1),
+            'options'       => json_decode($q['options'] ?? '[]', true),
+        ];
+    }
+
+    $usersRes      = $conn->query("SELECT COUNT(*) as cnt FROM users WHERE role = 'user'");
+    $totalStudents = (int)$usersRes->fetch_assoc()['cnt'];
+
+    $rRes = $conn->query("
+        SELECT r.id          AS response_id,
+               r.submitted_at,
+               u.firstName,
+               u.middleName,
+               u.lastName,
+               u.emailAddress
+        FROM   responses r
+        JOIN   users     u ON u.id = r.user_id
+        WHERE  r.survey_id = $surveyId
+        ORDER  BY r.submitted_at DESC
+    ");
+
+    $responses = [];
+    while ($resp = $rRes->fetch_assoc()) {
+        $rid = (int)$resp['response_id'];
+
+        $nameParts = array_filter([
+            trim($resp['firstName']  ?? ''),
+            trim($resp['middleName'] ?? ''),
+            trim($resp['lastName']   ?? ''),
+        ]);
+        $fullName = implode(' ', $nameParts);
+
+        $aRes    = $conn->query("SELECT question_id, answer_text FROM answers WHERE response_id = $rid");
+        $answers = [];
+        while ($a = $aRes->fetch_assoc()) {
+            $answers[(string)$a['question_id']] = $a['answer_text'];
+        }
+
+        $responses[] = [
+            'response_id'  => $rid,
+            'student_name' => $fullName,
+            'email'        => $resp['emailAddress'] ?? '',
+            'submitted_at' => $resp['submitted_at'],
+            'answers'      => (object)$answers,
+        ];
+    }
+
+    $responseCount = count($responses);
+    $pct           = $totalStudents > 0 ? round(($responseCount / $totalStudents) * 100) : 0;
+
+    ob_end_clean();
+    echo json_encode([
+        'success'       => true,
+        'survey'        => $survey,
+        'questions'     => $questions,
+        'responses'     => $responses,
+        'responseCount' => $responseCount,
+        'totalStudents' => $totalStudents,
+        'pct'           => $pct,
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
 
 // ── CREATE ────────────────────────────────────────────────────────────────────
 if ($action === 'create') {
@@ -95,6 +185,7 @@ if ($action === 'update') {
     }
     $stmt->close();
 
+    // Replace all questions (delete + re-insert preserves simplicity)
     $conn->query("DELETE FROM questions WHERE survey_id = $id");
 
     foreach ($questions as $q) {
@@ -150,8 +241,7 @@ if ($action === 'publish' || $action === 'close') {
         exit;
     }
 
-    // Fetch survey title for notifications
-    $surveyRow = $conn->query("SELECT title FROM surveys WHERE id = $id")->fetch_assoc();
+    $surveyRow   = $conn->query("SELECT title FROM surveys WHERE id = $id")->fetch_assoc();
     $surveyTitle = $surveyRow['title'] ?? 'Untitled';
 
     $stmt = $conn->prepare("UPDATE surveys SET status = ? WHERE id = ?");
@@ -159,22 +249,18 @@ if ($action === 'publish' || $action === 'close') {
     $stmt->execute();
     $stmt->close();
 
-    // ── Notify when published ──────────────────────────────────────────────
-if ($action === 'publish') {
+    if ($action === 'publish') {
         $testInsert = $conn->query("INSERT INTO user_notifications (user_id, type, message, survey_id, survey_title) VALUES (14, 'survey_published', 'direct debug', $id, '$surveyTitle')");
         error_log('Direct insert: ' . ($testInsert ? 'OK' : $conn->error));
-        
+
         $users = $conn->query("SELECT id FROM users WHERE role = 'user'");
         error_log('Users found: ' . $users->num_rows);
-        
+
         user_notif_survey_published($conn, $id, $surveyTitle);
     }
 
-    // ── Notify when manually closed ───────────────────────────────────────
     if ($action === 'close') {
-        // Notify admin
         notif_insert($conn, 'auto_closed', $surveyTitle, $id);
-        // Notify users who responded
         user_notif_survey_closed($conn, $id, $surveyTitle);
     }
 
@@ -186,7 +272,7 @@ if ($action === 'publish') {
 // ── AUTO-CLOSE EXPIRED SURVEYS ────────────────────────────────────────────────
 if ($action === 'auto_close') {
 
-    $today = date('Y-m-d');
+    $today   = date('Y-m-d');
     $expired = $conn->query("
         SELECT id, title FROM surveys
         WHERE status = 'published'
@@ -198,10 +284,7 @@ if ($action === 'auto_close') {
     while ($survey = $expired->fetch_assoc()) {
         $conn->query("UPDATE surveys SET status = 'closed' WHERE id = {$survey['id']}");
 
-        // Notify admin
         notif_insert($conn, 'auto_closed', $survey['title'], $survey['id']);
-
-        // Notify users who responded
         user_notif_survey_closed($conn, $survey['id'], $survey['title']);
 
         $count++;

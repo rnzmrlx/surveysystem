@@ -77,14 +77,12 @@ if (isset($_POST['loginButton'])) {
                     header("Location: /surveysystem/public/user/index");
                 }
                 exit();
-
             } else {
                 $_SESSION['message'] = "Invalid username or password";
                 $_SESSION['code']    = "error";
                 header("Location: /surveysystem/public/login");
                 exit();
             }
-
         } else {
             $_SESSION['message'] = "Invalid username or password";
             $_SESSION['code']    = "error";
