@@ -90,29 +90,34 @@ if (!empty($user['avatar'])) {
     margin-bottom: 0;
     gap: 4px;
   }
-
-  .header-nav .nav-icon {
-    color: var(--gold);
-    font-size: 20px;
-    position: relative;
-    padding: 4px 8px;
-    transition: all 0.2s ease;
+.header-nav li {
+    list-style: none !important;
+}
+ .header-nav .nav-icon {
+    position: relative;   /* already there — confirm it's present */
     display: flex;
     align-items: center;
-    text-decoration: none;
-    cursor: pointer;
-  }
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
 
   .header-nav .nav-icon:hover {
     color: #000;
   }
 
 .header-nav .badge-number {
+    position: absolute;
+    top: 2px;
+    right: 6px;
     background: transparent !important;
     color: #000000 !important;
     font-size: 11px;
     font-weight: 800;
     font-family: 'DM Sans', sans-serif;
+    padding: 0;
+    line-height: 1;
 }
 
   .header-nav .nav-profile {
@@ -163,30 +168,33 @@ if (!empty($user['avatar'])) {
   font-size: 14px;   /* ← matches admin */
   color: #6c757d;
 }
+
+  .dropdown-menu.profile {
+    min-width: 200px;
+}
 .dropdown-menu.profile .dropdown-header h6 {
-  font-size: 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0;
 }
 
 .dropdown-menu.profile .dropdown-header span {
-  font-size: 12px;
+    font-size: 12px;
+    color: #6c757d;
 }
+
 .dropdown-menu.profile .dropdown-header {
-  text-align: center;
+    text-align: center;
 }
 
 .dropdown-item {
-  font-size: 13.5px !important;
-  border-radius: 0 !important;
+    font-size: 13.5px !important;
 }
-.dropdown-item:hover {
-  background: var(--paper) !important;
-  color: var(--gold) !important;
-  border-radius: 0 !important;
-}
-  .dropdown-divider {
-    border-color: var(--paper-3) !important;
-  }
 
+.dropdown-item:hover {
+    color: var(--gold) !important;
+}
   /* ── Notification dropdown (manual, no Bootstrap) ── */
   #notifWrapper {
     position: relative;
@@ -343,8 +351,7 @@ if (!empty($user['avatar'])) {
     <!-- ── Notifications ── -->
     <li class="nav-item dropdown">
       <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown" id="userNotifBell">
-        <i class="bi bi-bell"></i>
-        <span class="badge badge-number" id="userNotifCount" style="display:none;"></span>
+<i class="bi bi-bell" style="color: var(--gold);"></i>        <span class="badge badge-number" id="userNotifCount" style="display:none;"></span>
       </a>
 
       <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow notifications"

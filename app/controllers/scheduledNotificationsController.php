@@ -1,14 +1,4 @@
 <?php
-// ── scheduledNotifications.php ────────────────────────────────────────────
-// Location: surveysystem/app/controllers/scheduledNotifications.php
-//
-// Run this file on a schedule — either:
-//   (A) Cron job:  0 8 * * * php /path/to/surveysystem/app/controllers/scheduledNotifications.php
-//   (B) Auto-run:  include it in user/index.php so it fires on every login
-//
-// It is safe to run multiple times — all checks are idempotent.
-// ─────────────────────────────────────────────────────────────────────────────
-
 include __DIR__ . '/../config/config.php';
 include __DIR__ . '/userNotificationController.php';
 include __DIR__ . '/notificationController.php';
@@ -16,8 +6,6 @@ include __DIR__ . '/notificationController.php';
 $today    = date('Y-m-d');
 $tomorrow = date('Y-m-d', strtotime('+1 day'));
 
-// ── 1. CLOSING SOON — surveys ending tomorrow ─────────────────────────────
-// Notify users who haven't answered yet about surveys closing in 1 day
 $closingSoon = $conn->query("
     SELECT id, title FROM surveys
     WHERE status = 'published'
@@ -25,7 +13,6 @@ $closingSoon = $conn->query("
 ");
 
 while ($survey = $closingSoon->fetch_assoc()) {
-    // Get users who have NOT answered this survey
     $users = $conn->query("
         SELECT id FROM users
         WHERE role = 'user'
@@ -58,7 +45,6 @@ while ($survey = $closingSoon->fetch_assoc()) {
     }
 }
 
-// ── 2. INACTIVITY — users with no response in 7 days ─────────────────────
 $cutoff = date('Y-m-d H:i:s', strtotime('-7 days'));
 
 $inactiveUsers = $conn->query("
@@ -104,7 +90,6 @@ while ($user = $inactiveUsers->fetch_assoc()) {
     }
 }
 
-// ── 3. AUTO-CLOSE expired surveys + notify affected users & admin ─────────
 $expired = $conn->query("
     SELECT id, title FROM surveys
     WHERE status = 'published'
@@ -114,13 +99,6 @@ $expired = $conn->query("
 
 while ($survey = $expired->fetch_assoc()) {
     $conn->query("UPDATE surveys SET status = 'closed' WHERE id = {$survey['id']}");
-
-    // Notify admin
     notif_insert($conn, 'auto_closed', $survey['title'], $survey['id']);
-
-    // Notify users who responded
     user_notif_survey_closed($conn, $survey['id'], $survey['title']);
 }
-
-// Uncomment below if running via browser directly (for testing):
-// echo json_encode(['success' => true, 'message' => 'Scheduled notifications processed.']);

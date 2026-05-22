@@ -1,10 +1,4 @@
 <?php
-// ── notificationController.php (ADMIN) ───────────────────────────────────────
-// Location: surveysystem/app/controllers/notificationController.php
-// Handles admin-only notifications.
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ── INSERT a notification (called internally by other controllers) ─────────
 function notif_insert($conn, $type, $surveyTitle, $surveyId = null, $userId = null)
 {
     $message = match ($type) {
@@ -12,7 +6,7 @@ function notif_insert($conn, $type, $surveyTitle, $surveyId = null, $userId = nu
         'answered'        => "Someone submitted a response to: \"{$surveyTitle}\"",
         'published'       => "Survey \"{$surveyTitle}\" has been published and users have been notified.",
         'auto_closed'     => "Survey \"{$surveyTitle}\" has expired and was automatically closed.",
-        'user_registered' => $surveyTitle, // reused field carries the message for registration
+        'user_registered' => $surveyTitle,
         default           => "Survey activity on: \"{$surveyTitle}\"",
     };
 
@@ -25,7 +19,6 @@ function notif_insert($conn, $type, $surveyTitle, $surveyId = null, $userId = nu
     $stmt->close();
 }
 
-// ── FETCH recent notifications (with optional limit) ─────────────────────
 function notif_fetch($conn, $limit = 20)
 {
     $stmt = $conn->prepare("
@@ -46,7 +39,6 @@ function notif_fetch($conn, $limit = 20)
     return ['unread' => $unread, 'notifications' => $rows];
 }
 
-// ── FETCH ALL notifications (no limit — for history page) ─────────────────
 function notif_fetch_all($conn)
 {
     $stmt = $conn->prepare("
@@ -61,15 +53,12 @@ function notif_fetch_all($conn)
     return ['notifications' => $rows];
 }
 
-// ── MARK all as read ──────────────────────────────────────────────────────
 function notif_mark_read($conn)
 {
     $conn->query("UPDATE notifications SET is_read = 1 WHERE is_read = 0");
 }
 
-// ── HTTP action handler ───────────────────────────────────────────────────
 if (basename(__FILE__) === basename($_SERVER['SCRIPT_FILENAME'] ?? '')) {
-
     ob_start();
     session_start();
 

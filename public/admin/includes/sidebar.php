@@ -96,14 +96,14 @@
     background: var(--paper);
   }
 
-  /* Main Content Adjustment */
-  #main {
+#main {
     margin-left: 260px;
+    margin-top: 60px;
     transition: all 0.3s;
     padding: 20px;
     background: var(--paper);
     min-height: 100vh;
-  }
+}
 
   .main-wrapper {
     margin-left: 260px;

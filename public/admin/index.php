@@ -78,14 +78,20 @@ $recentSurveys = array_slice($surveys, 0, 5);
     background: var(--paper);
     color: var(--ink);
   }
-
-  .main-wrapper {
-    padding: 2.5rem 2.75rem 4rem;
+#main {
+    padding-top: 80px;
+}
+.main-wrapper {
+    padding: 0 2.75rem 4rem;
     max-width: 1440px;
-    margin: 0 auto;
+    margin: -20px auto 0;
     width: 100%;
-  }
-
+}
+@media (max-width: 1199px) {
+    .main-wrapper {
+        margin-top: -20px;
+    }
+}
   .breadcrumbs {
     display: flex;
     align-items: center;
@@ -102,14 +108,14 @@ $recentSurveys = array_slice($surveys, 0, 5);
     color: var(--ink-2);
   }
 
-  header {
+.page-header {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
     margin-bottom: 2.25rem;
     gap: 1rem;
     flex-wrap: wrap;
-  }
+}
 
   header h1 {
     font-family: 'DM Serif Display', serif;
@@ -540,12 +546,11 @@ $recentSurveys = array_slice($surveys, 0, 5);
 
 <div class="main-wrapper">
   <div class="breadcrumbs"><span class="current-page">Dashboard Overview</span></div>
-  <header>
-    <div>
+<div class="page-header">    <div>
       <h1>Admin <em>Overview</em></h1>
       <p class="header-sub">A snapshot of surveys, students, and response analytics.</p>
     </div>
-  </header>
+</div>
 
   <div class="nav-cards">
     <a href="surveymanagement.php" class="nav-card">

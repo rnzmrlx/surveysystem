@@ -7,7 +7,7 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
   <title>Register · QuickQuery</title>
-
+<link rel="icon" type="image/png" href="/surveysystem/public/user/assets/img/logo.png">
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -400,7 +400,7 @@
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                 <polyline points="22,6 12,13 2,6" />
               </svg>
-              <input type="email" name="emailAddress" placeholder="abilex@example.com" required>
+              <input type="email" name="emailAddress" placeholder="abilex@ustp.edu.ph" required>
             </div>
             <span class="field-error" id="err-email">Please enter a valid email.</span>
           </div>

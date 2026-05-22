@@ -2,7 +2,7 @@
 session_start();
 $root = dirname(__DIR__);
 include_once($root . "/config/config.php");
-include_once($root . "/controllers/notificationController.php"); 
+include_once($root . "/controllers/notificationController.php");
 
 function generate_uuid()
 {

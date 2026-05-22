@@ -32,6 +32,7 @@ $_topbarInitials = strtoupper(
         margin-right: 2rem !important;
     }
 }
+
   .header .logo span {
     font-family: 'DM Serif Display', serif;
     font-size: 22px;
@@ -52,18 +53,18 @@ $_topbarInitials = strtoupper(
     transition: all 0.2s ease;
   }
 
-  .header-nav .badge-number {
+.header-nav .badge-number {
+    position: absolute;
+    top: 2px;
+    right: 6px;
     background: transparent !important;
     color: #000000 !important;
-    font-family: 'DM Sans', sans-serif;
     font-size: 11px;
     font-weight: 800;
-    position: absolute;
-    top: -2px;
-    right: 2px;
-    letter-spacing: -0.05em;
-    text-shadow: 0.5px 0.5px 0px var(--paper), -0.5px -0.5px 0px var(--paper);
-  }
+    font-family: 'DM Sans', sans-serif;
+    padding: 0;
+    line-height: 1;
+}
 
   .header-nav .nav-icon:hover {
     color: #000000;
@@ -72,12 +73,27 @@ $_topbarInitials = strtoupper(
   .header-nav .nav-icon:hover .badge-number {
     color: var(--gold) !important;
   }
+.header-nav ul {
+    list-style: none !important;
+    padding: 0;
+    margin: 0;
+}
 
+.header-nav ul li {
+    list-style: none !important;
+}
   .header-nav .nav-profile span {
     font-family: 'DM Sans', sans-serif;
     font-weight: 600;
     color: var(--ink-2);
     font-size: 14px;
+}
+.toggle-sidebar-btn {
+    font-size: 28px !important;
+    cursor: pointer;
+    color: var(--ink);
+    margin-left: 16px;
+    line-height: 1;
 }
   .dropdown-menu {
     background: #fff;
@@ -85,17 +101,42 @@ $_topbarInitials = strtoupper(
     box-shadow: var(--shadow) !important;
     border-radius: var(--radius) !important;
   }
-.dropdown-item:hover {
-  background: var(--paper) !important;
-  color: var(--gold) !important;
+  .dropdown-menu.profile {
+    min-width: 200px;
 }
-  .topbar-avatar {
+.dropdown-menu.profile .dropdown-header h6 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0;
+}
+
+.dropdown-menu.profile .dropdown-header span {
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.dropdown-menu.profile .dropdown-header {
+    text-align: center;
+}
+
+.dropdown-item {
+    font-size: 13.5px !important;
+}
+
+.dropdown-item:hover {
+    color: var(--gold) !important;
+}
+.topbar-avatar {
     width: 36px;
     height: 36px;
-    border-radius: 50%;
+    border-radius: 50% !important;
     object-fit: cover;
     border: 1.5px solid var(--paper-3);
-  }
+    display: block;
+    flex-shrink: 0;
+    margin-right: 8px
+}
 
   #notifList .notification-item.unread {
     background-color: #f8f9fa;
@@ -112,18 +153,15 @@ $_topbarInitials = strtoupper(
 
 <header id="header" class="header fixed-top d-flex align-items-center">
 
-<div class="d-flex align-items-center w-100-sm">
-  <a href="index.php" class="logo d-flex align-items-center">
+<a href="index.php" class="logo d-flex align-items-center" style="text-decoration:none;">
   <img src="assets/img/logo.png" alt="Logo" style="height: 32px; width: auto; margin-right: 6px;">
   <span class="d-none d-lg-block">Quick<em>Query</em></span>
 </a>
-<i class="bi bi-list toggle-sidebar-btn" style="margin-left: 0px;"></i>  </div>
-
-<nav class="header-nav ms-auto" style="margin-right: 6px;">    <ul class="d-flex align-items-center">
-
+<i class="bi bi-list toggle-sidebar-btn" style="margin-left: 110px;"></i>
+<nav class="header-nav ms-auto" style="margin-right: 6px;">    
+<ul class="d-flex align-items-center" style="list-style:none; padding:0; margin:0;">
       <!-- ── Notifications ── -->
-      <li class="nav-item dropdown">
-        <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown" id="notifBell">
+<li class="nav-item dropdown" style="margin-right:24px;">        <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown" id="notifBell">
           <i class="bi bi-bell"></i>
           <span class="badge badge-number" id="notifCount" style="display:none;"></span>
         </a>
@@ -160,43 +198,37 @@ $_topbarInitials = strtoupper(
         </ul>
       </li>
 
-      <!-- ── Profile ── -->
-      <li class="nav-item dropdown pe-3">
-        <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-          <img id="topbarAvatarImg"
-            src="<?= $_topbarAvatarSrc ?>"
-            alt="Profile"
-            class="topbar-avatar rounded-circle">
-          <span class="dropdown-toggle ps-2"><?= htmlspecialchars($_SESSION['authUser']['username']) ?></span>
-        </a>
-
-        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
-          <li class="dropdown-header">
-            <h6><?= htmlspecialchars($_SESSION['authUser']['username']) ?></h6>
-            <span><?= htmlspecialchars($_SESSION['authUser']['fullName']) ?> · Admin</span>
-          </li>
-          <li>
-            <hr class="dropdown-divider">
-          </li>
-          <li>
-            <a class="dropdown-item d-flex align-items-center" href="/surveysystem/public/admin/profile.php">
-              <i class="bi bi-person"></i>
-              <span>My Profile</span>
-            </a>
-          </li>
-          <li>
-            <hr class="dropdown-divider">
-          </li>
-          <li>
-            <form action="../../app/controllers/adminController.php" method="post">
-              <button type="submit" name="logoutButton" class="dropdown-item d-flex align-items-center">
-                <i class="bi bi-box-arrow-right"></i>
-                <span>Sign Out</span>
-              </button>
-            </form>
-          </li>
-        </ul>
-      </li>
+<li class="nav-item dropdown pe-3">
+<a class="nav-link nav-profile dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><img id="topbarAvatarImg"
+  src="<?= $_topbarAvatarSrc ?>"
+  alt="Profile"
+  class="topbar-avatar rounded-circle"
+  onerror="this.onerror=null; this.src='assets/img/profile-img.jpg';">
+    <span><?= htmlspecialchars($_SESSION['authUser']['username']) ?></span>
+  </a>
+  <ul class="dropdown-menu dropdown-menu-end profile">
+<li class="dropdown-header text-center">
+  <h6 style="font-size:14px; font-weight:600; margin:0;"><?= htmlspecialchars($_SESSION['authUser']['username']) ?></h6>
+  <span style="font-size:12px; color:#6c757d;"><?= htmlspecialchars($_SESSION['authUser']['fullName']) ?> · Admin</span>
+</li>
+    <li><hr class="dropdown-divider"></li>
+    <li>
+      <a class="dropdown-item" href="/surveysystem/public/admin/profile.php">
+        <i class="bi bi-person"></i>
+        My Profile
+      </a>
+    </li>
+    <li><hr class="dropdown-divider"></li>
+    <li>
+      <form action="../../app/controllers/adminController.php" method="post">
+        <button type="submit" name="logoutButton" class="dropdown-item">
+          <i class="bi bi-box-arrow-right"></i>
+          Sign Out
+        </button>
+      </form>
+    </li>
+  </ul>
+</li>
 
     </ul>
   </nav>

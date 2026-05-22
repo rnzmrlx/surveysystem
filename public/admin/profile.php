@@ -193,9 +193,10 @@ $avatarSrc = !empty($user['avatar']) ? '/surveysystem/' . htmlspecialchars($user
     color: var(--ink-2);
   }
 
-  .page-header {
+.page-header {
     margin-bottom: 2rem;
-  }
+    display: block;
+}
 
 .page-header h1 {
   font-family: 'DM Serif Display', serif;
@@ -549,11 +550,12 @@ $avatarSrc = !empty($user['avatar']) ? '/surveysystem/' . htmlspecialchars($user
     <span class="cur">My Profile</span>
   </div>
 
-  <div class="page-header">
-    <h1>My <em>Profile</em></h1>
-    <p>Manage your account information and security settings.</p>
-  </div>
-
+<div class="page-header">
+    <div>
+        <h1>My <em>Profile</em></h1>
+        <p>Manage your account information and security settings.</p>
+    </div>
+</div>
   <?php if ($success): ?>
     <div class="alert alert-success"><i class="bi bi-check-circle"></i> <?= htmlspecialchars($success) ?></div>
   <?php endif; ?>
@@ -714,11 +716,14 @@ $avatarSrc = !empty($user['avatar']) ? '/surveysystem/' . htmlspecialchars($user
             '<img src="' + freshSrc + '" alt="Avatar" style="width:100%;height:100%;object-fit:cover;">';
         <?php endif; ?>
 
-        var avatarImg = document.getElementById('topbarAvatarImg');
-        if (avatarImg) {
-          var toggleSpan = avatarImg.parentElement.querySelector('span.dropdown-toggle');
-          if (toggleSpan) toggleSpan.textContent = username;
-        }
+var topbarSpan = document.querySelector('.nav-profile span');
+if (topbarSpan) topbarSpan.textContent = username;
+
+var dropdownH6 = document.querySelector('.dropdown-menu.profile .dropdown-header h6');
+if (dropdownH6) dropdownH6.textContent = username;
+
+var dropdownSpan = document.querySelector('.dropdown-menu.profile .dropdown-header span');
+if (dropdownSpan) dropdownSpan.textContent = fullName + ' · Admin';
 
         var profileDropdown = document.querySelector('.dropdown-menu.profile');
         if (profileDropdown) {
